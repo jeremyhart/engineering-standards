@@ -20,20 +20,16 @@ Pull in the [stacks/](stacks) files that match your technology to turn each neut
 
 ### Install
 
-Copy the whole `standards-audit` folder into your agent's skills directory:
+Install with [`skills`](https://github.com/vercel-labs/skills), which pulls the skill from this repo into your agent's skills directory:
 
+user-level, for all your agents (Claude Code, Copilot, Codex, …)
 ```bash
-# Claude Code (user-level)
-cp -r skills/standards-audit ~/.claude/skills/
-
-# GitHub Copilot / VS Code (user-level)
-cp -r skills/standards-audit ~/.copilot/skills/
-
-# or project-level, committed with the repo you want to audit
-cp -r skills/standards-audit .agents/skills/
+npx skills add jeremyhart/engineering-standards --global
 ```
-
-Copy the entire folder, not just `SKILL.md` — the `references/` copies are what make it self-contained. If they're missing the skill will tell you it was installed incompletely.
+or project-level, committed with the repo you want to audit
+```bash
+npx skills add jeremyhart/engineering-standards
+```
 
 ### Run
 
