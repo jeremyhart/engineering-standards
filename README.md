@@ -16,7 +16,34 @@ Pull in the [stacks/](stacks) files that match your technology to turn each neut
 
 ## Using the audit skill
 
-Copy `skills/standards-audit/` into your agent's skills folder. Then ask your agent to audit the current repo against the standards for a given stage; it grades each item as met, missing, unknown, or not applicable, and orders the gaps by urgency. The skill is self-contained — the checklist and stack facets are embedded under its `references/` folder.
+[skills/standards-audit/](skills/standards-audit/) is a self-contained agent skill — the checklist and stack facets are embedded under its `references/` folder, so you can copy the folder anywhere and it still works. It grades a repo against the standards, marking each item met / missing / unknown / not applicable, and orders the gaps by urgency for your target stage.
+
+### Install
+
+Copy the whole `standards-audit` folder into your agent's skills directory:
+
+```bash
+# Claude Code (user-level)
+cp -r skills/standards-audit ~/.claude/skills/
+
+# GitHub Copilot / VS Code (user-level)
+cp -r skills/standards-audit ~/.copilot/skills/
+
+# or project-level, committed with the repo you want to audit
+cp -r skills/standards-audit .agents/skills/
+```
+
+Copy the entire folder, not just `SKILL.md` — the `references/` copies are what make it self-contained. If they're missing the skill will tell you it was installed incompletely.
+
+### Run
+
+Open the repo you want to audit and ask your agent, in natural language:
+
+- "Audit this repo against the engineering standards."
+- "Are we ready for prod?" — targets the `Prod` stage
+- "Audit for `Internal` and tell me what to fix first."
+
+The skill detects the target stage, project type, and applicable stack facets itself, states them as assumptions, and produces a report ranked by urgency. Pass a stage (`Prototype` / `Internal` / `Prod`) or a specific category to narrow the focus.
 
 ## Versioning
 
