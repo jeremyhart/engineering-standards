@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Standards Audit — atlasroute-api</title>
+<style>
+  :root {
+    --fg: oklch(0.141 0.005 285.823);
+    --fg-secondary: oklch(0.442 0.017 285.786);
+    --muted: oklch(0.552 0.016 285.938);
+    --faint: oklch(0.705 0.015 286.067);
+    --border: oklch(0.92 0.004 286.32);
+    --border-light: oklch(0.94 0.004 286.32);
+    --border-dashed: oklch(0.871 0.006 286.286);
+    --bg: oklch(0.985 0 0);
+    --surface: oklch(1 0 0);
+    --secondary: oklch(0.967 0.001 286.375);
+    --destructive: oklch(0.577 0.245 27.325);
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100vh; background: var(--bg); color: var(--fg);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 56px 32px 96px;
+  }
+  a { color: var(--fg); text-decoration: underline; text-underline-offset: 2px; }
+  a:hover { color: var(--fg-secondary); }
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  /* header */
+  .report-header { display: flex; flex-direction: column; gap: 20px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+  .report-header .top { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .kicker { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  h1 { margin: 6px 0 0; font-size: 30px; line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; font-family: var(--mono); }
+  .report-meta { display: flex; flex-direction: column; gap: 4px; text-align: right; font-size: 12px; line-height: 1.5; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    display: inline-flex; align-items: center; height: 22px; padding: 0 9px;
+    border-radius: 6px; border: 1px solid var(--border); background: var(--surface);
+    font-size: 12px; line-height: 1; color: var(--fg-secondary);
+  }
+  .chip-solid { border-color: var(--fg); background: var(--fg); color: var(--bg); font-weight: 500; }
+  .chip-mono { font-family: var(--mono); }
+
+  /* lede + stats */
+  .lede-section { padding: 36px 0 8px; }
+  .lede { margin: 0; max-width: 620px; font-size: 19px; line-height: 1.55; letter-spacing: -0.01em; text-wrap: pretty; }
+  .lede strong { font-weight: 600; }
+  .stats { margin-top: 36px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .stat { display: flex; flex-direction: column; gap: 6px; padding: 18px 20px; border-left: 1px solid var(--border); }
+  .stat:first-child { border-left: none; padding-left: 0; }
+  .stat .num { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stat .num.dim { color: var(--muted); }
+  .stat .label { font-size: 12px; color: var(--muted); }
+  .stats-note { margin-top: 12px; font-size: 12.5px; color: var(--muted); }
+
+  /* sections */
+  section { margin-top: 56px; border-top: 1px solid var(--border); padding-top: 24px; }
+  section.plain { border-top: none; padding-top: 0; margin-top: 36px; }
+  .section-no { font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; }
+  h2 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -0.02em; }
+  h2 .count { font-weight: 400; color: var(--muted); }
+  .section-sub { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+
+  /* priority */
+  .priority-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .priority-head h2 { font-size: 21px; color: var(--destructive); }
+  .priority-head .aside { font-size: 13px; color: var(--muted); }
+  .priority-grid { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; border-top: 1px solid var(--border); padding-top: 18px; }
+  .priority-item { display: flex; flex-direction: column; gap: 5px; }
+  .priority-item .name { font-size: 15px; font-weight: 500; }
+  .priority-item .detail { font-size: 13px; line-height: 1.6; color: var(--fg-secondary); text-wrap: pretty; }
+  .priority-item .tag { margin-top: 3px; font-size: 11.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+
+  /* next steps */
+  ol.steps { margin: 20px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+  ol.steps li { display: grid; grid-template-columns: 28px 1fr auto; gap: 16px; align-items: baseline; padding: 14px 0; border-top: 1px solid var(--border); }
+  ol.steps .n { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  ol.steps .body { display: flex; flex-direction: column; gap: 3px; }
+  ol.steps .title { font-size: 14px; font-weight: 500; }
+  ol.steps .detail { font-size: 13px; line-height: 1.55; color: var(--fg-secondary); }
+  ol.steps .cost { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+  /* gaps table */
+  .table-card { margin-top: 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: var(--bg); }
+  th {
+    text-align: left; font-weight: 500; font-size: 11px; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--muted);
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+  }
+  th.col-status { width: 84px; }
+  th.col-risk { width: 150px; }
+  th.col-effort { width: 64px; text-align: right; }
+  tbody tr { border-bottom: 1px solid var(--border-light); vertical-align: top; }
+  tbody tr:last-child { border-bottom: none; }
+  td { padding: 14px 16px; }
+  .status-badge {
+    display: inline-flex; align-items: center; height: 20px; padding: 0 8px;
+    border-radius: 6px; font-size: 11px; font-weight: 500;
+  }
+  .status-missing { border: 1px solid var(--fg); color: var(--fg); }
+  .status-partial { border: 1px solid var(--border); background: var(--secondary); color: var(--fg-secondary); }
+  .gap-cell { display: flex; flex-direction: column; gap: 3px; }
+  .gap-cell .item { font-size: 13.5px; font-weight: 500; }
+  .gap-cell .evidence { font-size: 12.5px; line-height: 1.5; color: var(--muted); text-wrap: pretty; }
+  .gap-cell .category { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--faint); margin-top: 2px; }
+  .risk { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; }
+  .risk .dot { width: 5px; height: 5px; border-radius: 999px; flex: none; background: currentColor; }
+  .risk-breach { color: var(--destructive); font-weight: 500; }
+  .risk-incident { color: var(--fg); }
+  .risk-slow { color: var(--muted); }
+  .risk-slow .dot { background: var(--border-dashed); }
+  td.effort { text-align: right; font-family: var(--mono); font-size: 12px; color: var(--fg-secondary); }
+
+  /* unknowns */
+  .unknown-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+  .unknown-card {
+    border: 1px dashed var(--border-dashed); border-radius: 10px; background: var(--surface);
+    padding: 16px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .unknown-card .item { font-size: 13.5px; font-weight: 500; }
+  .unknown-card .check { font-size: 12.5px; line-height: 1.55; color: var(--muted); text-wrap: pretty; }
+
+  /* met */
+  .met-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+  .btn {
+    appearance: none; border: 1px solid var(--border); background: var(--surface);
+    border-radius: 6px; height: 28px; padding: 0 10px; font-size: 12px;
+    font-family: inherit; color: var(--fg-secondary); cursor: pointer;
+  }
+  .btn:hover { background: var(--secondary); }
+  .met-list { margin-top: 16px; display: flex; flex-direction: column; }
+  .met-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 9px 0; border-bottom: 1px solid var(--border-light); font-size: 13px; }
+  .met-row .item { color: var(--fg-secondary); }
+  .met-row .evidence { color: var(--faint); }
+  .met-row.extra { display: none; }
+  .met-list.open .met-row.extra { display: grid; }
+
+  /* deferred + n/a */
+  .deferred-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  .deferred-grid h2 { font-size: 13px; font-weight: 500; color: var(--muted); }
+  .deferred-grid h2 .count { color: var(--faint); }
+  .deferred-grid p { margin: 8px 0 0; font-size: 12.5px; line-height: 1.7; color: var(--faint); text-wrap: pretty; }
+  .link-btn {
+    margin-top: 10px; appearance: none; border: 0; background: none; padding: 0;
+    font-size: 12px; font-family: inherit; color: var(--muted); cursor: pointer;
+    text-decoration: underline; text-underline-offset: 2px;
+  }
+  #deferred-more { display: none; }
+  .deferred-open #deferred-short { display: none; }
+  .deferred-open #deferred-more { display: inline; }
+
+  /* why now */
+  .case-card { border: 1px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden; margin-top: 16px; }
+  .case-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .case-head h2 { font-size: 16px; letter-spacing: -0.01em; }
+  .tabs { display: flex; gap: 2px; padding: 3px; background: var(--secondary); border-radius: 8px; }
+  .tab {
+    appearance: none; border: 0; cursor: pointer; font-family: inherit;
+    font-size: 12px; font-weight: 500; height: 24px; padding: 0 12px; border-radius: 6px;
+    background: transparent; color: var(--muted);
+  }
+  .tab[aria-selected="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px oklch(0 0 0 / 0.08); }
+  .case-body { padding: 22px 20px 24px; }
+  .case-body p { margin: 0; max-width: 640px; font-size: 14px; line-height: 1.7; text-wrap: pretty; }
+  .case-body p[hidden] { display: none; }
+
+  footer {
+    margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    font-size: 12px; color: var(--faint);
+  }
+  footer .mono { font-family: var(--mono); }
+
+  @media (max-width: 720px) {
+    body { padding: 32px 20px 64px; }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .stat:nth-child(3) { border-left: none; padding-left: 0; }
+    .stat { padding-top: 14px; padding-bottom: 14px; }
+    .priority-grid, .unknown-grid, .deferred-grid { grid-template-columns: 1fr; }
+    th.col-risk { width: auto; }
+  }
+  @media print {
+    body { padding: 0; }
+    .btn, .link-btn, .tabs { display: none; }
+    .met-row.extra { display: grid; }
+    .case-body p[hidden] { display: block; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="report-header">
+    <div class="top">
+      <div>
+        <div class="kicker">Standards Audit</div>
+        <h1>atlasroute-api</h1>
+      </div>
+      <div class="report-meta">
+        <div>Standards v0.1.0</div>
+        <div>Generated 12 Aug 2026</div>
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip">Service</span>
+      <span class="chip chip-solid">Target stage · Internal</span>
+      <span class="chip chip-mono">typescript</span>
+      <span class="chip chip-mono">supabase</span>
+      <span class="chip chip-mono">cloudflare</span>
+    </div>
+  </header>
+
+  <div class="lede-section">
+    <p class="lede">
+      This service meets <strong>22 of the 35 standards</strong> expected at the Internal stage.
+      Two of the gaps could expose customer data; the full list of fixes is about three days of work.
+    </p>
+    <div class="stats">
+      <div class="stat"><span class="num">22</span><span class="label">Met</span></div>
+      <div class="stat"><span class="num">4</span><span class="label">Partial</span></div>
+      <div class="stat"><span class="num">6</span><span class="label">Missing</span></div>
+      <div class="stat"><span class="num dim">3</span><span class="label">Unknown</span></div>
+    </div>
+    <div class="stats-note">63% met of the 35 standards that apply at Internal stage · 44 not yet expected until Prod · 2 N/A</div>
+  </div>
+
+  <section>
+    <div class="section-no">01 · Priority</div>
+    <div class="priority-head">
+      <h2>Two gaps could expose customer data</h2>
+      <span class="aside">Fix before anything else · about a day together</span>
+    </div>
+    <div class="priority-grid">
+      <div class="priority-item">
+        <span class="name">Secret scanning</span>
+        <span class="detail">No scanner in the pipeline; one revoked key found in git history.</span>
+        <span class="tag">Missing · CI · Effort S</span>
+      </div>
+      <div class="priority-item">
+        <span class="name">Auth gates deny by default</span>
+        <span class="detail">RLS is enabled, but two tables have permissive policies and there is no deny-all default.</span>
+        <span class="tag">Missing · Security · Effort M</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-no">02 · Next steps</div>
+    <h2>Do this next</h2>
+    <p class="section-sub">Ranked by risk removed per hour spent.</p>
+    <ol class="steps">
+      <li>
+        <span class="n">01</span>
+        <span class="body"><span class="title">Secret scanning</span><span class="detail">Enable push protection and add a scan step to CI.</span></span>
+        <span class="cost">hours</span>
+      </li>
+      <li>
+        <span class="n">02</span>
+        <span class="body"><span class="title">Auth gates deny by default</span><span class="detail">Deny-all RLS migration, then explicit grants per table.</span></span>
+        <span class="cost">half a day</span>
+      </li>
+      <li>
+        <span class="n">03</span>
+        <span class="body"><span class="title">Dependency vuln scanning</span><span class="detail">Turn on the update bot and gate CI on pnpm audit.</span></span>
+        <span class="cost">an hour</span>
+      </li>
+      <li>
+        <span class="n">04</span>
+        <span class="body"><span class="title">Typecheck in CI</span><span class="detail">One line in ci.yml — fix the 4 errors on main first.</span></span>
+        <span class="cost">hours</span>
+      </li>
+      <li>
+        <span class="n">05</span>
+        <span class="body"><span class="title">Infrastructure as code</span><span class="detail">Start with the Cloudflare config; export existing resources.</span></span>
+        <span class="cost">1–2 days</span>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="section-no">03 · All gaps</div>
+    <h2>Gaps to act on</h2>
+    <p class="section-sub">10 standards missing or partially met at the Internal stage.</p>
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-status">Status</th>
+            <th>Standard</th>
+            <th class="col-risk">Risk</th>
+            <th class="col-effort">Effort</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="status-badge status-missing">Missing</span></td>
+            <td><div class="gap-cell"><span class="item">Secret scanning</span><span class="evidence">No scanner in pipeline; one revoked key in git history</span><span class="category">CI</span></div></td>
+            <td><span class="risk risk-breach"><span class="dot"></span>Causes breach</span></td>
+            <td class="effort">S</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-missing">Missing</span></td>
+            <td><div class="gap-cell"><span class="item">Auth gates deny by default</span><span class="evidence">Two tables have permissive RLS policies</span><span class="category">Security</span></div></td>
+            <td><span class="risk risk-breach"><span class="dot"></span>Causes breach</span></td>
+            <td class="effort">M</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-missing">Missing</span></td>
+            <td><div class="gap-cell"><span class="item">Dependency vuln scanning</span><span class="evidence">No update bot, no audit step; 3 known-vulnerable transitive deps</span><span class="category">CI</span></div></td>
+            <td><span class="risk risk-incident"><span class="dot"></span>Causes incidents</span></td>
+            <td class="effort">S</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-missing">Missing</span></td>
+            <td><div class="gap-cell"><span class="item">IaC</span><span class="evidence">Supabase + Cloudflare resources created via dashboards; nothing reproducible</span><span class="category">Infrastructure</span></div></td>
+            <td><span class="risk risk-incident"><span class="dot"></span>Causes incidents</span></td>
+            <td class="effort">M</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-missing">Missing</span></td>
+            <td><div class="gap-cell"><span class="item">Request correlation</span><span class="evidence">No request ID on log lines; debugging requires timestamp archaeology</span><span class="category">Observability</span></div></td>
+            <td><span class="risk risk-slow"><span class="dot"></span>Slows team</span></td>
+            <td class="effort">S</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-missing">Missing</span></td>
+            <td><div class="gap-cell"><span class="item">Seeding script</span><span class="evidence">New devs copy a shared dump by hand</span><span class="category">Dev Experience</span></div></td>
+            <td><span class="risk risk-slow"><span class="dot"></span>Slows team</span></td>
+            <td class="effort">M</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-partial">Partial</span></td>
+            <td><div class="gap-cell"><span class="item">Typecheck</span><span class="evidence">Strict mode on, but tsc not run in CI — 4 errors on main</span><span class="category">Code Quality</span></div></td>
+            <td><span class="risk risk-incident"><span class="dot"></span>Causes incidents</span></td>
+            <td class="effort">M</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-partial">Partial</span></td>
+            <td><div class="gap-cell"><span class="item">Linting</span><span class="evidence">ESLint configured but not enforced in CI — drift in 14 files</span><span class="category">Code Quality</span></div></td>
+            <td><span class="risk risk-slow"><span class="dot"></span>Slows team</span></td>
+            <td class="effort">S</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-partial">Partial</span></td>
+            <td><div class="gap-cell"><span class="item">Unit testing</span><span class="evidence">Core pricing logic covered; auth helpers and parsers untested</span><span class="category">Testing</span></div></td>
+            <td><span class="risk risk-incident"><span class="dot"></span>Causes incidents</span></td>
+            <td class="effort">M</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-partial">Partial</span></td>
+            <td><div class="gap-cell"><span class="item">CONTEXT.md</span><span class="evidence">Exists but describes the pre-rewrite architecture</span><span class="category">AI-Assisted Development</span></div></td>
+            <td><span class="risk risk-slow"><span class="dot"></span>Slows team</span></td>
+            <td class="effort">S</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-no">04 · Unverified</div>
+    <h2>Unknown — needs a check outside the repo</h2>
+    <p class="section-sub">Three standards the audit cannot see from source. A few minutes each.</p>
+    <div class="unknown-grid">
+      <div class="unknown-card">
+        <span class="item">Branch protection</span>
+        <span class="check">GitHub → Settings → Branches: PR required, no force pushes.</span>
+      </div>
+      <div class="unknown-card">
+        <span class="item">Runtime secrets management</span>
+        <span class="check">Confirm secrets live in the platform store, not team vaults.</span>
+      </div>
+      <div class="unknown-card">
+        <span class="item">Cost monitoring</span>
+        <span class="check">Confirm budget alerts exist in the Cloudflare and Supabase dashboards.</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-no">05 · In good standing</div>
+    <div class="met-head">
+      <h2>Already met <span class="count">· 22</span></h2>
+      <button type="button" class="btn" id="met-toggle" aria-expanded="false">Show all 22</button>
+    </div>
+    <div class="met-list" id="met-list">
+      <div class="met-row"><span class="item">Pre-commit hooks</span><span class="evidence">husky + lint-staged</span></div>
+      <div class="met-row"><span class="item">Migrations</span><span class="evidence">supabase/migrations/, sequential</span></div>
+      <div class="met-row"><span class="item">.env.example</span><span class="evidence">typed config parse at startup</span></div>
+      <div class="met-row"><span class="item">Setup docs &amp; script</span><span class="evidence">clone → running in one script</span></div>
+      <div class="met-row"><span class="item">Pinned tool versions</span><span class="evidence">.nvmrc + lockfile</span></div>
+      <div class="met-row extra"><span class="item">Conventional commits</span><span class="evidence">enforced via commitlint</span></div>
+      <div class="met-row extra"><span class="item">Trunk-based branching</span><span class="evidence">short-lived branches, squash merge</span></div>
+      <div class="met-row extra"><span class="item">Structured logging</span><span class="evidence">JSON log lines, levelled</span></div>
+      <div class="met-row extra"><span class="item">Config validation</span><span class="evidence">zod schema at boot</span></div>
+      <div class="met-row extra"><span class="item">Idempotent writes</span><span class="evidence">request keys on mutating endpoints</span></div>
+      <div class="met-row extra"><span class="item">API versioning</span><span class="evidence">/v1 prefix, deprecation policy in docs</span></div>
+      <div class="met-row extra"><span class="item">Input validation</span><span class="evidence">zod at every route boundary</span></div>
+      <div class="met-row extra"><span class="item">Least-privilege service keys</span><span class="evidence">scoped per worker</span></div>
+      <div class="met-row extra"><span class="item">Dependency lockfile committed</span><span class="evidence">pnpm-lock.yaml</span></div>
+      <div class="met-row extra"><span class="item">Readme quickstart</span><span class="evidence">verified on a clean machine</span></div>
+      <div class="met-row extra"><span class="item">Code owners</span><span class="evidence">CODEOWNERS on protected paths</span></div>
+      <div class="met-row extra"><span class="item">Typed DB client</span><span class="evidence">generated from schema</span></div>
+      <div class="met-row extra"><span class="item">Error taxonomy</span><span class="evidence">typed error codes returned to clients</span></div>
+      <div class="met-row extra"><span class="item">Local dev parity</span><span class="evidence">supabase start mirrors prod schema</span></div>
+      <div class="met-row extra"><span class="item">Build reproducibility</span><span class="evidence">CI builds from lockfile only</span></div>
+      <div class="met-row extra"><span class="item">Secrets excluded from repo</span><span class="evidence">.gitignore + verified history scan</span></div>
+      <div class="met-row extra"><span class="item">PR template</span><span class="evidence">risk and rollback prompts</span></div>
+    </div>
+  </section>
+
+  <section class="plain">
+    <div class="deferred-grid">
+      <div id="deferred">
+        <h2>Not yet expected at Internal stage <span class="count">· 44</span></h2>
+        <p>
+          <span id="deferred-short">Error tracking · Health endpoint · Alerting · Rollback strategy · Rate limiting &amp; abuse protection · Backup &amp; restore procedure — all Min stage = Prod.</span>
+          <span id="deferred-more">Error tracking · Health endpoint · Alerting · Rollback strategy · Rate limiting &amp; abuse protection · Backup &amp; restore procedure · SLOs · On-call rotation · Load testing · Audit logging · Data retention policy · Disaster recovery drill — and 32 more. All have Min stage = Prod.</span>
+        </p>
+        <button type="button" class="link-btn" id="deferred-toggle" aria-expanded="false">Show more</button>
+      </div>
+      <div>
+        <h2>Not applicable <span class="count">· 2</span></h2>
+        <p>Accessibility baseline, Component library discipline — API-only service, no frontend.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-no">06 · Why now</div>
+    <div class="case-card">
+      <div class="case-head">
+        <h2>The case for spending three days on this</h2>
+        <div class="tabs" role="tablist">
+          <button type="button" class="tab" role="tab" id="tab-biz" aria-selected="true" aria-controls="case-biz">Business</button>
+          <button type="button" class="tab" role="tab" id="tab-eng" aria-selected="false" aria-controls="case-eng">Engineering</button>
+        </div>
+      </div>
+      <div class="case-body">
+        <p id="case-biz" role="tabpanel" aria-labelledby="tab-biz">Two of the gaps could expose customer data — a secret sitting in git history and database tables that allow access by default rather than denying it. Neither is a rewrite; both are configuration. The whole action list is roughly three days of engineering time. Deferring compounds the cost, because every feature built from here inherits the same gaps and has to be revisited later. This is not new work for its own sake — it is the maintenance that keeps features shipping at the pace you see today, without a security incident interrupting the roadmap.</p>
+        <p id="case-eng" role="tabpanel" aria-labelledby="tab-eng" hidden>Both breach items are config-level fixes, not projects: push protection plus a CI scan step, and a deny-all RLS migration followed by explicit grants. The typecheck and lint gates are one-liners in ci.yml that stop the drift already visible on main — 4 type errors and 14 unformatted files. IaC is the only item with real scope, and it can start with the Cloudflare config alone. Nothing on this list blocks feature work or requires a freeze; each item lands as an independent PR and can be picked up between features.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>79 standards evaluated · 35 apply at Internal stage · standards v0.1.0</span>
+    <span class="mono">atlasroute-api · 12 Aug 2026</span>
+  </footer>
+
+</div>
+<script>
+(function () {
+  var metToggle = document.getElementById('met-toggle');
+  var metList = document.getElementById('met-list');
+  if (metToggle && metList) {
+    metToggle.addEventListener('click', function () {
+      var open = metList.classList.toggle('open');
+      metToggle.setAttribute('aria-expanded', String(open));
+      metToggle.textContent = open ? 'Show fewer' : 'Show all 22';
+    });
+  }
+
+  var defToggle = document.getElementById('deferred-toggle');
+  var deferred = document.getElementById('deferred');
+  if (defToggle && deferred) {
+    defToggle.addEventListener('click', function () {
+      var open = deferred.classList.toggle('deferred-open');
+      defToggle.setAttribute('aria-expanded', String(open));
+      defToggle.textContent = open ? 'Show fewer' : 'Show more';
+    });
+  }
+
+  var tabBiz = document.getElementById('tab-biz');
+  var tabEng = document.getElementById('tab-eng');
+  var caseBiz = document.getElementById('case-biz');
+  var caseEng = document.getElementById('case-eng');
+  function selectTab(activeTab, activePanel, otherTab, otherPanel) {
+    activeTab.setAttribute('aria-selected', 'true');
+    otherTab.setAttribute('aria-selected', 'false');
+    activePanel.hidden = false;
+    otherPanel.hidden = true;
+  }
+  if (tabBiz && tabEng && caseBiz && caseEng) {
+    tabBiz.addEventListener('click', function () { selectTab(tabBiz, caseBiz, tabEng, caseEng); });
+    tabEng.addEventListener('click', function () { selectTab(tabEng, caseEng, tabBiz, caseBiz); });
+  }
+})();
+</script>
+</body>
+</html>
