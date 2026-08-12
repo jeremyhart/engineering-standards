@@ -48,8 +48,8 @@
 
   /* lede + stats */
   .lede-section { padding: 36px 0 8px; }
-  .lede { margin: 0; max-width: 620px; font-size: 19px; line-height: 1.55; letter-spacing: -0.01em; text-wrap: pretty; }
-  .lede strong { font-weight: 600; }
+  .lede { margin: 0; max-width: 620px; font-size: 19px; line-height: 1.55; letter-spacing: -0.01em; text-wrap: pretty; font-weight: 300; color: var(--fg-secondary); }
+  .lede strong { font-weight: 600; color: var(--fg); }
   .stats { margin-top: 36px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
   .stat { display: flex; flex-direction: column; gap: 6px; padding: 18px 20px; border-left: 1px solid var(--border); }
   .stat:first-child { border-left: none; padding-left: 0; }
@@ -127,6 +127,16 @@
   .unknown-card .item { font-size: 13.5px; font-weight: 500; }
   .unknown-card .check { font-size: 12.5px; line-height: 1.55; color: var(--muted); text-wrap: pretty; }
 
+  /* verified against live infra — same vertical card as unknowns, solid border */
+  .verified-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+  .verified-card {
+    border: 1px solid var(--border); border-radius: 10px; background: var(--surface);
+    padding: 16px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .verified-card .item { font-size: 13.5px; font-weight: 500; }
+  .verified-card .item::after { content: " ✓"; color: var(--muted); font-weight: 400; }
+  .verified-card .check { font-size: 12.5px; line-height: 1.55; color: var(--muted); text-wrap: pretty; }
+
   /* met */
   .met-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
   .btn {
@@ -183,7 +193,7 @@
     .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .stat:nth-child(3) { border-left: none; padding-left: 0; }
     .stat { padding-top: 14px; padding-bottom: 14px; }
-    .priority-grid, .unknown-grid, .deferred-grid { grid-template-columns: 1fr; }
+    .priority-grid, .unknown-grid, .verified-grid, .deferred-grid { grid-template-columns: 1fr; }
     th.col-risk { width: auto; }
   }
   @media print {
@@ -219,8 +229,8 @@
 
   <div class="lede-section">
     <p class="lede">
-      This service meets <strong>22 of the 35 standards</strong> expected at the Internal stage.
-      Two of the gaps could expose customer data; the full list of fixes is about three days of work.
+      Meets <strong>22 of 35 standards</strong> expected at Internal stage.
+      <strong>Two gaps could expose customer data;</strong> full fixes are about three days.
     </p>
     <div class="stats">
       <div class="stat"><span class="num">22</span><span class="label">Met</span></div>
@@ -380,6 +390,27 @@
       <div class="unknown-card">
         <span class="item">Cost monitoring</span>
         <span class="check">Confirm budget alerts exist in the Cloudflare and Supabase dashboards.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Optional: only when live connections verified previously-Unknown rows. Omit if none. -->
+  <section>
+    <div class="section-no">04b · Verified against live infrastructure</div>
+    <h2>Confirmed outside the repo</h2>
+    <p class="section-sub">Checked live via connected services; folded into the counts above.</p>
+    <div class="verified-grid">
+      <div class="verified-card">
+        <span class="item">Runtime secrets management</span>
+        <span class="check">Worker bindings are all durable_object / kv / d1 / r2 plus plain_text ids; no secret_text in the repo.</span>
+      </div>
+      <div class="verified-card">
+        <span class="item">Access deny-by-default</span>
+        <span class="check">App gates the hostname with five policies; one scoped bypass for a .well-known path.</span>
+      </div>
+      <div class="verified-card">
+        <span class="item">Cost monitoring</span>
+        <span class="check">Billing budget alert notification policy is enabled on the account.</span>
       </div>
     </div>
   </section>

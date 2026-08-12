@@ -1,10 +1,6 @@
 # Project Standards Checklist
-
-One row per standard. Rate each project against the columns to decide what applies.
-
 **Column key**
 
-- **Done** — tick when in place
 - **Risk if absent** — *Causes breach* · *Causes incidents* · *Slows team* · *Polish*
 - **Min stage** — earliest project stage where this should be in place: *Prototype* · *Internal* · *Prod*
 - **Effort** — rough cost to adopt: *S* · *M* · *L*
@@ -105,7 +101,7 @@ One row per standard. Rate each project against the columns to decide what appli
 
 ## Frontend
 
-*Applies when: the project has a user-facing UI.*
+*Only relevant if the project has a user-facing UI.*
 
 | Done | Item | Risk if absent | Min stage | Effort |
 |---|---|---|---|---|
@@ -113,7 +109,7 @@ One row per standard. Rate each project against the columns to decide what appli
 
 ## Database
 
-*Applies when: the project has a database.*
+*Only relevant if the project has a database.*
 
 | Done | Item | Risk if absent | Min stage | Effort |
 |---|---|---|---|---|

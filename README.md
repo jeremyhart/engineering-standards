@@ -10,7 +10,7 @@ A stage-gated engineering checklist — practical rather than aspirational. Ever
 
 ## Using the checklist
 
-Pick your target stage, then read [standards.md](standards.md) and skip anything above that stage. Categories carry an *"Applies when: ..."* line where they only apply under certain conditions — skip those that don't hold.
+Pick your target stage, then read [standards.md](standards.md) and skip anything above that stage. Some categories carry an italic *"Only relevant if ..."* note where they only apply under certain conditions — skip those that don't hold.
 
 Pull in the [stacks/](stacks) files that match your technology to turn each neutral standard into concrete tooling.
 
@@ -30,6 +30,15 @@ or project-level, committed with the repo you want to audit
 ```bash
 npx skills add jeremyhart/engineering-standards
 ```
+
+### Update
+
+Re-run the same command to pull the latest release over your installed copy:
+
+```bash
+npx skills add jeremyhart/engineering-standards --global
+```
+Drop `--global` to update a project-level install. Check [VERSION](VERSION) for the current release.
 
 ### Run
 

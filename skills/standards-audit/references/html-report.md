@@ -1,8 +1,8 @@
 # HTML Report Template
 
-Write `standards-audit.html` as a single self-contained file: inline `<style>` and `<script>`, no external fonts, CSS, JS, or images. It must render correctly opened via `file://`.
+**Do not use this file to author HTML/CSS.** [example-report.html](./example-report.html) is the literal file to copy — read it, copy it verbatim, and only edit content nodes (text, table rows, card lists) to substitute this audit's data. Never rename a class, restructure a section's DOM, add a CSS rule, or change a spacing/colour value that isn't in the example. This file only explains *why* each section exists and *which data* fills it, so you substitute the right content in the right place — it is not a spec to regenerate markup from.
 
-A complete worked example lives at [example-report.html](./example-report.html) — copy its structure, tokens, and interactions. This file explains the intent so you can regenerate it with real audit data; when in doubt, match the example.
+If your output and the example ever disagree on a class name, a colour, or a pixel value, your output is wrong — go back to the example and copy it exactly.
 
 ## Design intent
 
@@ -12,7 +12,7 @@ Neutral zinc palette, generous whitespace, one accent (red) reserved exclusively
 
 ## Structure
 
-Content width ~880px, centred. Sections are numbered (`01 · Priority` … `06 · Why now`) and ordered by urgency, followed by low-priority material and a footer.
+The skeleton below is a reading guide to the example's DOM, not markup to type out — copy the actual tags, classes, and nesting from [example-report.html](./example-report.html) instead of reconstructing them from the placeholders shown here.
 
 ```html
 <!DOCTYPE html>
@@ -32,6 +32,9 @@ Content width ~880px, centred. Sections are numbered (`01 · Priority` … `06 �
 
   <div class="lede-section">          <!-- plain-language finding + stat strip -->
     <p class="lede">…{met} of the {applicable} standards … {plain risk sentence} … {rough effort}…</p>
+    <!-- completeness: when GitHub and/or cloud/hosting weren't reached, add a plain note here
+         stating the report is INCOMPLETE, which services weren't reached, and that their Unknown
+         rows are unverified. Omit when every detected out-of-repo service was connected. -->
     <div class="stats">               <!-- Met / Partial / Missing / Unknown; Unknown num is .dim -->
     <div class="stats-note">…met-% of applicable · N not yet expected · N N/A…</div>
   </div>
@@ -40,6 +43,7 @@ Content width ~880px, centred. Sections are numbered (`01 · Priority` … `06 �
   <section>02 · Next steps</section>   <!-- ranked <ol class="steps">, 3–5 items, each with a rough cost -->
   <section>03 · All gaps</section>     <!-- .table-card table: Status | Standard(+evidence+category) | Risk | Effort -->
   <section>04 · Unverified</section>   <!-- 3-col grid of dashed .unknown-card, one per Unknown item -->
+  <!-- Optional 04b · Verified against live infra: 3-col grid of solid .verified-card, one per row that a live connection confirmed. OMIT when no rows were verified live -->
   <section>05 · In good standing</section> <!-- Met rows, first 5 shown, rest .extra behind a toggle -->
 
   <section class="plain">              <!-- deferred + N/A, de-emphasised, side by side -->
@@ -67,13 +71,14 @@ There is deliberately no colour-coded banner and no letter/level grade. Severity
 - **02 · Next steps** — the ranked recommendation list from step 5 (risk severity desc, then effort asc), 3–5 items, each with a plain-language cost ("hours", "half a day").
 - **03 · All gaps** — every `Missing`/`Partial` row at or below target stage, same rows and order as the markdown report. Status badge (Missing = outlined dark, Partial = filled grey), evidence line, category, risk with a dot (red for breach), effort in mono.
 - **04 · Unverified** — one dashed card per `Unknown` row with the exact out-of-repo check.
+- **04b · Verified against live infrastructure** (optional) — only when a live connection (step 2) turned previously-`Unknown` rows into `Met`/`Partial`. One solid `.verified-card` per such row, using the **same vertical stack** as `.unknown-card` (name over one-line finding); a `✓` is appended to the name via CSS. These rows are already folded into the counts above — this section just shows the reader what was checked live. Do **not** lay the card out as name-beside-detail columns. Omit the whole section when nothing was verified live.
 - **05 · In good standing** — `Met` rows as two-column item/evidence lines; show the first 5, hide the rest as `.extra` behind a "Show all N" toggle.
 - **Deferred / N/A** (`section.plain`) — de-emphasised. "Not yet expected at {stage}" lists Prod-only items with a short→more toggle; "Not applicable" states each row and its reason.
 - **06 · Why now** — the investment case (SKILL.md step 8) as one card with Business/Engineering tabs; Business selected by default. Omit when there are no actionable gaps.
 
 ## Styling
 
-All colours are CSS custom properties on `:root` using the zinc `oklch` scale — copy them verbatim from the example:
+Do not retype the `<style>` block from memory or from the token list below — copy the example's `<style>` block character-for-character. The list below is only so you recognize the tokens when reading the example; it is not a spec to write CSS from.
 
 - `--fg: oklch(0.141 0.005 285.823)` · `--fg-secondary: oklch(0.442 0.017 285.786)` · `--muted: oklch(0.552 0.016 285.938)` · `--faint: oklch(0.705 0.015 286.067)`
 - `--border: oklch(0.92 0.004 286.32)` · `--border-light: oklch(0.94 0.004 286.32)` · `--border-dashed: oklch(0.871 0.006 286.286)`
@@ -88,7 +93,7 @@ Rules: no gradients, no animation, no web fonts, no shadows except the subtle on
 
 ## Interactions
 
-Vanilla JS in one IIFE, wrapped in null-checks; the report must be fully readable with JS disabled (progressive enhancement — hidden content is revealed by print/JS, never required to understand the verdict). Three handlers:
+Copy the `<script>` block from the example verbatim — do not rewrite the toggle/tab logic. It is one IIFE, wrapped in null-checks; the report must be fully readable with JS disabled (progressive enhancement — hidden content is revealed by print/JS, never required to understand the verdict). Three handlers:
 
 - **Met toggle** — toggles `.open` on the met list (CSS reveals `.extra` rows); button text swaps "Show all N" ⇄ "Show fewer"; keep `aria-expanded` in sync.
 - **Deferred toggle** — toggles `.deferred-open` (swaps short/more spans); "Show more" ⇄ "Show fewer".
