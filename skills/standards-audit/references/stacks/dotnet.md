@@ -12,7 +12,7 @@ Stack-specific guidance per standard. Section names match standard names in `sta
 
 `dotnet format` with `.editorconfig` committed; verified in CI (`dotnet format --verify-no-changes`).
 
-## Typecheck
+## Type safety
 
 `<Nullable>enable</Nullable>` and `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` in a shared `Directory.Build.props`.
 
@@ -20,7 +20,7 @@ Stack-specific guidance per standard. Section names match standard names in `sta
 
 Roslyn analyzers enabled (`<AnalysisLevel>latest-recommended</AnalysisLevel>`); warnings fail the build in CI.
 
-## Dependency vuln scanning
+## Dependency vulnerability scanning
 
 `dotnet list package --vulnerable` in CI, or Dependabot/Renovate for NuGet.
 
@@ -28,15 +28,15 @@ Roslyn analyzers enabled (`<AnalysisLevel>latest-recommended</AnalysisLevel>`); 
 
 Task runner (`justfile`/`Makefile` or documented `dotnet` commands) exposing `dev`, `build`, `test`, `lint`, `format`.
 
-## `.env.example`
+## Validated configuration at startup
 
 Options pattern with `ValidateDataAnnotations().ValidateOnStart()` so missing/invalid config fails at startup, not first use.
 
-## Migrations
+## Database changes only through code
 
 EF Core migrations committed; no manual schema edits. `dotnet ef migrations bundle` (or script) for pipeline apply.
 
-## Secure coding baseline
+## Secure coding patterns
 
 Model binding + FluentValidation/DataAnnotations at boundaries; EF/parameterised queries only — no string-built SQL.
 

@@ -1,156 +1,174 @@
 # Evidence Signals
 
-Concrete signals to look for per checklist item. For each item, `Met` requires **all** listed sub-conditions unless noted. If a sub-condition can only be verified outside the repo (GitHub settings, cloud portal, human process), mark the item `Unknown` and list what to check.
+Concrete signals to look for per control. Grade against the definition **at the required level** in
+the section files — these signals tell you where to look, the section entry tells you what counts.
 
-Signals are illustrative, not exhaustive — a project using a different-but-equivalent tool still counts as `Met`.
+If a signal can only be verified outside the repo (source-host settings, cloud portal, human
+process), mark the control `Unknown` and list what to check. Signals are illustrative, not
+exhaustive — a project using a different-but-equivalent tool still counts.
 
 ## AI-Assisted Development
 
-| Item | In-repo signals | Out-of-repo (→ `Unknown`) |
+| Standard | In-repo signals | Out-of-repo (→ `Unknown`) |
 |---|---|---|
-| CONTEXT.md | `CONTEXT.md` or equivalent (`ARCHITECTURE.md`) at root; contains architecture + conventions + gotchas sections | — |
-| AGENTS.md | `AGENTS.md` or `.github/copilot-instructions.md` at root | — |
-| Single source of truth for agent docs | Only one of AGENTS.md / CLAUDE.md / copilot-instructions.md has content; others are stubs/symlinks pointing to it | — |
-| Domain model in CONTEXT.md | CONTEXT.md has a "Domain" / "Glossary" / "Ubiquitous language" section | — |
-| ADRs agent-readable | `docs/adr/`, `docs/decisions/`, or `adr/` folder exists; referenced from CONTEXT.md/AGENTS.md | — |
-| Agent config reviewed as code | AGENTS.md/skills/hooks tracked in git (not gitignored); no agent config in personal/global-only locations | PR review actually covers agent-config changes |
-| Agent guardrails | AGENTS.md or copilot-instructions.md has a "do not" / "guardrails" / "boundaries" section | — |
-| Destructive-command guardrails as a hook | `.github/hooks/*.json` with `PreToolUse` blocking `rm -rf`, `git push --force`, prod deletes | — |
-| Post-tool-use hooks | `.github/hooks/*.json` with `PostToolUse` running lint/format/typecheck | — |
-| Issue tracker + triage vocabulary for agents | AGENTS.md notes where issues live; `docs/agents/issue-tracker.md` / `docs/agents/triage-labels.md` or `.github/labels.yml`; triage-role labels defined (`needs-triage`, `ready-for-agent`, …) | Issue tracker access for agents |
-| Spec-first agent workflow | `.github/prompts/` or `.github/agents/` contains align/spec/tickets/implement/review flow | — |
-| Automated diagnosis skills | Skill files (`.agents/skills/`, `skills/`) that reference the repo's deploy targets/environments and diagnose failures | — |
+| Agent-readable project context | A context file at root (`CONTEXT.md`, `AGENTS.md`, `ARCHITECTURE.md`, `.github/copilot-instructions.md`) covering architecture, conventions and gotchas. Higher levels: only one file has content and others reference it; a domain/glossary section; links to decision records | Whether it is actually current |
+| Agent configuration reviewed as code | Agent instructions, skills and hooks tracked in git (not gitignored, not global-only) | Whether PR review covers agent-config changes |
+| Destructive-action guardrails | A "do not" / guardrails / boundaries section in the agent instructions; hook or wrapper config blocking destructive commands (recursive deletes, force pushes, production deletes) | Enforcement configured outside the repo |
+| Automated post-edit checks | Hook config running lint/format after agent edits (`.github/hooks/*.json` `PostToolUse`, or equivalent) | — |
+| Agent issue tracking | Tracker named in the agent instructions; triage label vocabulary defined (`.github/labels.yml`, `docs/agents/*`) | Tracker access for agents |
+| Automated diagnosis skills | Skill files (`.agents/skills/`, `.claude/skills/`, `skills/`) that reference this repo's deploy targets, environments and log locations, and produce a diagnosis rather than a dump | Whether it is wired into the incident path |
 
-## Source Control
+## API & Contracts
 
-| Item | In-repo signals | Out-of-repo (→ `Unknown`) |
-|---|---|---|
-| Branch protection | — | GitHub branch protection rules on default branch |
-| Code review process | `CODEOWNERS` file in `.github/` or root; CONTRIBUTING.md mentions reviewer count | GitHub required-reviewers setting |
-| Pre-commit hooks | `.husky/`, `.pre-commit-config.yaml`, `lefthook.yml`, or `package.json` `lint-staged` config | — |
-| Commit naming schema | `commitlint.config.*`, `.commitlintrc*`, or CI workflow validating commit messages | — |
-| PR template | `.github/PULL_REQUEST_TEMPLATE.md` (any case) or `.github/pull_request_template/` | — |
-
-## CI
-
-| Item | In-repo signals | Out-of-repo (→ `Unknown`) |
-|---|---|---|
-| PR checks required before merge | `.github/workflows/*.yml` runs build+lint+typecheck+test on `pull_request` | GitHub required-status-checks setting |
-| Secret scanning | CI workflow running `gitleaks`, `trufflehog`, or GitHub secret scanning enabled via `.github/` config | GitHub advanced security setting |
-| Dependency vuln scanning | `.github/dependabot.yml`, `renovate.json`, or CI step running `npm audit` / `pip-audit` / `snyk` | — |
-| Dependency update policy | CONTRIBUTING.md or docs describe cadence; Renovate/Dependabot config sets schedule | — |
-| Docs drift detection | CI step running docs-lint / link-check / OpenAPI-diff and failing on drift, and/or a skill that checks docs against code | — |
-
-## Deployment
-
-| Item | In-repo signals | Out-of-repo (→ `Unknown`) |
-|---|---|---|
-| Continuous deployment | Deploy workflow triggered on push to main/tag; no `workflow_dispatch`-only deploys | — |
-| Deployment validation | Deploy workflow runs smoke test / health check after deploy and fails on error | — |
-| Rollback strategy | Runbook doc (`docs/runbooks/`, `RUNBOOK.md`) describes rollback | Tested-in-practice claim |
-| Automated rollback on failed smoke test | Deploy workflow has post-deploy check that triggers rollback step on failure | — |
-| Guarded release/deploy wrappers | Deploy scripts in `scripts/` or `Makefile` wrap raw deploy CLI commands | — |
-| Promotion path defined by trigger | Deploy workflow environment gated on branch/tag pattern, not manual input | — |
-| Artifact promotion | Workflow builds once, promotes via artifact/registry tag; no rebuild per environment | — |
-| Feature kill switches | Env-var/config flags gating risky features, or flag SDK (LaunchDarkly, Flagship, Unleash) initialized | Flag service config |
-| Automated versioning | `semantic-release`, `release-please`, `changesets`, or similar in CI | — |
-| Automated release notes | Same tools as above, or CI step generating `CHANGELOG.md` on release | — |
-
-## Infrastructure
-
-| Item | In-repo signals | Out-of-repo (→ `Unknown`) |
-|---|---|---|
-| IaC | `infra/`, `bicep/`, `terraform/`, `pulumi/` folder with resource definitions | Whether prod actually matches IaC (drift) |
-| Hosting details documented | README or `docs/` records subscription/project ID, resource group, region, resource names | — |
-| Environment parity | IaC uses parameterized environments; docs list per-env differences | — |
-| Backup & restore procedure | Runbook documents restore steps | Backup schedule + last successful restore test |
-
-## Security
-
-| Item | In-repo signals | Out-of-repo (→ `Unknown`) |
-|---|---|---|
-| Runtime secrets management | No secrets in repo (gitleaks clean); code reads from a managed secret store or platform-injected env | Managed identity / RBAC config in cloud |
-| Least-privilege access | IaC role assignments scoped narrowly; roles documented in `docs/` | Actual role assignments in cloud |
-| Prod access control | — | Cloud IAM / GitHub team membership |
-| Auth gates deny by default | Central auth middleware/gateway applied globally; public routes explicitly allowlisted | Gateway config outside repo |
-| Authorization reviewed per endpoint | Authz rules declared per route (decorators, policy files); review noted in PR template/checklist | Review practice |
-| Secure coding baseline | Input validation at boundaries (zod/pydantic/etc.); parameterised queries or ORM only; output encoding via framework | — |
-| Audit logging | Code paths for logins/permission changes/data exports emit dedicated audit events to an append-only sink | Sink immutability config |
-| Personal data handling | Docs list PII fields and where they live; delete-user code path exists; retention enforced via schema/TTL/cron | Whether deletion actually cascades in prod |
-| Rate limiting & abuse protection | Rate-limit middleware/binding in code, or IaC defines gateway/WAF rate rules; per-user quota logic for costly endpoints | Platform-level WAF/rate rules configured outside repo |
-
-## Operations
-
-| Item | In-repo signals | Out-of-repo (→ `Unknown`) |
-|---|---|---|
-| Ownership & on-call | CODEOWNERS or `OWNERS` file; README/docs name service owner | On-call rotation tool |
-| Incident response process | Doc describing alert → owner → fix → postmortem path (minimum: "who to ping, where to triage" note) | Rotation/postmortem practice |
-| Runbooks | `docs/runbooks/` or `RUNBOOK.md` covering known failure modes | — |
-| Status communication | Status page config/link or documented notice channel | Whether it's actually used during incidents |
-| Cost monitoring | IaC defines budget alerts | Cloud billing alerts + review cadence |
+| Standard | In-repo signals | Out-of-repo (→ `Unknown`) | `N/A` if |
+|---|---|---|---|
+| Interface contract | Shared types or a generated client between client and server; OpenAPI/GraphQL schema or IDL; CI step diffing the contract for breaking changes | — | No API surface |
+| Published API contract | Versioned routes or media types; a deprecation policy document with a stated window; consumer contract tests; changelog entries for API changes | Consumer communication practice | No consumers you can't deploy with |
 
 ## Code Quality
 
-| Item | In-repo signals | Out-of-repo (→ `Unknown`) |
+| Standard | In-repo signals | Out-of-repo (→ `Unknown`) |
 |---|---|---|
-| Linting | Linter config (`.eslintrc*`, `ruff.toml`, `.rubocop.yml`, etc.); CI step runs lint and fails on error | — |
-| Formatting | Formatter config (`.prettierrc*`, `pyproject.toml` `[tool.black]`, `.editorconfig` alone doesn't count); CI step runs formatter check | — |
-| Typecheck | `tsconfig.json` with `"strict": true` (or per-lang equivalent); CI step runs `tsc --noEmit` / `mypy` / `pyright` | — |
-| API contract defined | OpenAPI/GraphQL schema file, tRPC/Hono RPC router types shared with client, or generated client package; CI step diffing contract for breaking changes | — |
+| Linting | Linter config (`.eslintrc*`, `ruff.toml`, `.rubocop.yml`, etc.); CI step running lint and failing on error; few blanket disables | — |
+| Formatting | Formatter config (`.prettierrc*`, `[tool.black]`, etc. — `.editorconfig` alone doesn't count); CI step checking formatting | — |
+| Type safety | Type checker configured and run in CI (`tsc --noEmit`, `mypy`, `pyright`); strictness settings raised beyond defaults at higher levels; escape hatches rare and commented | — |
 
-## Frontend
+`Type safety` is `N/A` where the language has no type checker available — cite that precondition.
 
-*Category is `N/A` unless the project has a user-facing UI.*
+## Continuous Integration
 
-| Item | In-repo signals | Out-of-repo (→ `Unknown`) |
+| Standard | In-repo signals | Out-of-repo (→ `Unknown`) |
 |---|---|---|
-| Accessibility baseline | CI step running axe/Lighthouse/pa11y and failing on critical violations; a11y lint rules (eslint-plugin-jsx-a11y or equivalent) | Manual keyboard/screen-reader pass practice |
+| PR checks required before merge | Workflow running build+lint+types+tests on `pull_request` | Required-status-checks setting on the source host |
+| Dependency update policy | Update bot config with a schedule (`dependabot.yml`, `renovate.json`); documented cadence and major-version approach | Whether update PRs are actually merged |
+| Build provenance | Build tagged with its source commit; SBOM generation step (`syft`, `cyclonedx`); artifact signing (`cosign`, provenance attestation) | Published SBOM / signature verification by consumers |
 
 ## Database
 
-| Item | In-repo signals | Out-of-repo (→ `Unknown`) | `N/A` if |
-|---|---|---|---|
-| Migrations | `migrations/`, `db/migrate/`, `prisma/migrations/`, or ORM migration folder with versioned files | — | No database in project |
-| Migrations in pipeline | Deploy workflow runs migration step before app deploy | — | As above |
-| Migrations rehearsed on staging | Deploy workflow runs migrations against staging env before prod | — | As above |
-| Non-destructive migrations | Migration review checklist / lint (`squawk`, `atlas-lint`) in CI | Team practice | As above |
-| Forward-only migrations | Migration tool config disables `down` migrations, or convention documented | — | As above |
+*`N/A` unless the project has a database.*
+
+| Standard | In-repo signals | Out-of-repo (→ `Unknown`) |
+|---|---|---|
+| Database changes only through code | Versioned migration files (`migrations/`, `db/migrate/`, `prisma/migrations/`, `supabase/migrations/`); no console-applied changes referenced in docs. Higher levels: no standing human write access to production | Actual production access grants |
+| Migrations in pipeline | Deploy workflow applies migrations before the app deploy, with no manual step | — |
+| Migrations rehearsed before production | Workflow runs migrations against a non-production environment first | Whether the dataset is representative |
+| Non-destructive migrations | Expand–contract visible in migration history (add, backfill, later drop); migration lint in CI (`squawk`, `atlas lint`) | Team practice |
+| Forward-only migrations | No `down`/`revert` files, or the tool is configured to disallow them; documented recovery is redeploy-previous-version | — |
+
+## Deployment
+
+| Standard | In-repo signals | Out-of-repo (→ `Unknown`) |
+|---|---|---|
+| Automated deployment | Deploy workflow triggered by push or tag; no deploys from developer machines; environment determined by trigger rather than manual input | Whether anyone still deploys by hand |
+| Deployment validation | Post-deploy smoke test or health check in the workflow, failing the deploy on error | — |
+| Rollback strategy | Runbook describing rollback; automated rollback step on failed validation at the top level | Whether it has been rehearsed |
+| Artifact promotion | Build-once workflow promoting an artifact or image tag between environments; no rebuild per environment | — |
+| Feature kill switches | Config/env flags gating risky features, or a flag SDK initialised | Flag service configuration |
+| Automated versioning | `semantic-release`, `release-please`, `changesets` or equivalent in CI | — |
+| Automated release notes | The same tools, or a CI step generating `CHANGELOG.md` on release | — |
 
 ## Developer Environment
 
-| Item | In-repo signals | Out-of-repo (→ `Unknown`) |
+| Standard | In-repo signals | Out-of-repo (→ `Unknown`) |
 |---|---|---|
-| Setup docs & script | README "Setup" section + `scripts/setup.*` or `Makefile setup` target that runs end-to-end | — |
-| Standard task names | Task runner (e.g. `package.json` `scripts`, `Makefile`, `justfile`) includes `dev`, `build`, `test`, `lint`, `format`, `typecheck`; documented in README | — |
-| `.env.example` | `.env.example` at root with all required vars; code parses config into typed object at startup (e.g. zod/pydantic-settings) | — |
-| Pinned tool versions | Version files (`.nvmrc`, `.tool-versions`, `mise.toml`, or per-lang equivalent); lockfile committed | — |
-| Seeding script | `scripts/seed.*`, `db/seeds/`, or `npm run seed` documented | — |
+| Setup docs and script | README setup section plus `scripts/setup.*` or a `setup` task that runs end to end | Whether it works on a clean machine |
+| Standard task names | Task runner exposing `dev`, `build`, `test`, `lint`, `format`, `typecheck`; CI invoking the same entry points | — |
+| Documented configuration | `.env.example` (or equivalent) listing every required variable, with descriptions and no real secret values | — |
+| Validated configuration at startup | Config parsed and validated once at startup with clear errors (zod, pydantic-settings, Options + `ValidateOnStart`) | — |
+| Pinned tool versions | Version files (`.nvmrc`, `.tool-versions`, `mise.toml`, `global.json`); lockfile committed; CI using the same versions | — |
+| Seeding script | `scripts/seed.*`, `db/seeds/`, or a documented seed task | — |
 
-## Observability
+## Development Workflow
 
-| Item | In-repo signals | Out-of-repo (→ `Unknown`) |
+| Standard | In-repo signals | Out-of-repo (→ `Unknown`) |
 |---|---|---|
-| Structured logging | Logger library configured for JSON output (pino, winston-json, structlog); log level configurable | — |
-| Request correlation | Request/trace ID generated or read from header and included in every log line; propagated in outbound calls | — |
-| Error tracking | Error-tracker SDK initialized in app entry point | DSN configured in prod |
-| Health endpoint | Route handler for `/health`, `/healthz`, `/readyz`, or `/livez` | Monitor calling it |
-| Alerting | IaC defines alert rules (Azure `Microsoft.Insights/metricAlerts` or equivalent) | Alert routing / on-call integration |
+| Spec-driven development | Specs in the repo (`docs/specs/`, `specs/`, or issue templates demanding acceptance criteria); PRs referencing a spec; spec changes accompanying behaviour changes in history | Whether the spec preceded the work |
+| Test-driven development | Test and implementation files moving together in commit/PR history; diff-coverage gate in CI (`codecov` patch status, `diff-cover`); a documented red-green-refactor loop | Whether tests were literally written first |
+| Spec-first agent workflow | Prompt/agent flow files describing align → spec → tasks → implement → review; briefs committed alongside agent work | Practice |
 
 ## Documentation
 
-| Item | In-repo signals | Out-of-repo (→ `Unknown`) |
+| Standard | In-repo signals | Out-of-repo (→ `Unknown`) |
 |---|---|---|
-| README: Purpose | README opens with a description of what the project does and who it's for; project status noted | — |
-| README: Run | README has "Run" / "Getting started" / "Development" section with commands | — |
-| README: Deploy | README or `docs/deploy.md` covers each environment | — |
-| README: Architecture | README or `docs/architecture.md` has diagram or component description | — |
-| ADRs | `docs/adr/`, `docs/decisions/`, or `adr/` folder with numbered records | — |
-| Infrastructure docs | `docs/infrastructure.md` or generated-from-IaC docs describing topology + access | — |
+| README completeness | Purpose and run in the first screenful; deploy section; architecture diagram or component description; operational surface at the top level | — |
+| Architecture decision records | `docs/adr/`, `docs/decisions/` or `adr/` with numbered, dated records; linked from the project context | — |
+| Infrastructure documentation | `docs/infrastructure.md` or generated-from-IaC docs describing topology, identities and access | Whether it matches reality |
+| Docs drift detection | Scheduled workflow running a docs-vs-code check (link check, OpenAPI diff, or a drift skill); issues filed automatically from it | Whether filed issues get closed |
+
+## Frontend
+
+*`N/A` unless the project has a user-facing UI.*
+
+| Standard | In-repo signals | Out-of-repo (→ `Unknown`) |
+|---|---|---|
+| Accessibility baseline | Semantic markup and labelled controls; a11y lint rules; CI step running axe/Lighthouse/pa11y failing on critical violations | Manual keyboard/screen-reader passes |
+
+## Infrastructure
+
+| Standard | In-repo signals | Out-of-repo (→ `Unknown`) |
+|---|---|---|
+| Infrastructure as code | `infra/`, `bicep/`, `terraform/`, `pulumi/` with resource definitions; remote state with locking; plan-on-PR workflow | Whether production matches the code (drift) |
+| Hosting details documented | Docs recording account/subscription id, resource names, region, DNS and registrar, pipeline, third-party services, billing owner | — |
+| Non-production environment | IaC or config defining a staging environment; deploy workflow targeting it before production; deployment slots configured | Whether it actually mirrors production |
+| Environment parity | Environments provisioned from the same IaC with parameters; documented per-environment differences | Actual configuration drift between environments |
+
+## Observability
+
+| Standard | In-repo signals | Out-of-repo (→ `Unknown`) |
+|---|---|---|
+| Structured logging | Logger configured for structured output (pino, structlog, Serilog); consistent fields; configurable level; shipping to a queryable sink | Retention configuration |
+| Log hygiene | Redaction configured at the logger with a field deny-list; identifiers in path/body rather than query strings; documented retention window | Actual retention in the log platform |
+| Request correlation | Request/trace id generated or read from a header, attached to every log line, propagated to outbound calls and background jobs | Tracing backend configuration |
+| Error tracking | Error-tracker SDK initialised at the app entry point; errors grouped and triaged | DSN configured in production |
+| Health endpoint | Route for `/health`, `/healthz`, `/readyz`; dependency checks inside it | External monitor calling it |
+| Alerting | Alert rules defined in IaC; alerts referencing owners and runbooks | Alert routing, on-call integration, whether alerts are actionable |
+
+`Log hygiene` is `N/A` where the project handles no personal data — cite that precondition.
+
+## Operations
+
+| Standard | In-repo signals | Out-of-repo (→ `Unknown`) |
+|---|---|---|
+| Ownership and on-call | CODEOWNERS or docs naming the service owner; escalation path documented | On-call rotation tool |
+| Incident response process | Doc describing alert → owner → fix → review, with severity levels | Rotation and postmortem practice |
+| Runbooks | `docs/runbooks/` or `RUNBOOK.md` covering the known failure modes, linked from alerts | Whether they are exercised |
+| Backup and restore | Backup configuration in IaC; restore procedure documented with a recorded restore time; RTO/RPO stated at the top level | Backup schedule, last successful restore test |
+| Status communication | Status page config or documented notice channel | Whether it is used during incidents |
+| Cost monitoring | Budget alerts defined in IaC | Cloud billing alerts and review cadence |
+
+## Security
+
+| Standard | In-repo signals | Out-of-repo (→ `Unknown`) |
+|---|---|---|
+| Runtime secrets management | No secrets in the repo (secret scan clean); code reading from a managed store or platform-injected environment; workload identity rather than long-lived credentials | Managed identity / RBAC configuration; rotation |
+| Secret scanning | CI running `gitleaks`/`trufflehog`, or host-native secret scanning config; baseline file with reasons and expiry dates | Host secret-scanning setting |
+| Dependency vulnerability scanning | CI step running an audit tool; severity threshold blocking merge; suppression file with expiry; licence allowlist check | — |
+| Least-privilege access | IaC role assignments scoped narrowly; separate service and human identities; roles documented | Actual role assignments; access reviews |
+| Production access control | — | Cloud IAM, team membership, break-glass process and its logs |
+| Deny-by-default auth | One central enforcement point applied globally, with public routes explicitly allowlisted; a new route protected without extra work; failures denying rather than allowing | Gateway configuration outside the repo |
+| Endpoint authorization | Authorization declared per route (policies, decorators, guards) following one consistent approach; tenant isolation tests at the top level | Review practice |
+| Secure coding patterns | **Sampled:** parameterised queries or ORM only (no string-built SQL); a validation library used at boundaries; output encoding by the template layer; SAST in CI | Penetration test cadence |
+| Audit logging | Dedicated audit events for logins, permission changes and exports, written to a separate sink the app can't rewrite | Sink immutability and retention configuration |
+| Personal data handling | Documented PII inventory; delete-user code path; retention enforced in schema/TTL/job; logs and backups accounted for | Whether deletion actually cascades in production |
+| Rate limiting and abuse protection | Rate-limit middleware or binding; IaC defining gateway/WAF rules; per-user quotas on costly endpoints | Platform WAF/rate rules configured outside the repo |
+
+`Personal data handling` is `N/A` where no personal data is held; `Rate limiting and abuse protection`
+is `N/A` where the service is not reachable by untrusted parties. Cite the precondition either way.
+
+## Source Control & Review
+
+| Standard | In-repo signals | Out-of-repo (→ `Unknown`) |
+|---|---|---|
+| Branch protection | — | Branch protection rules on the default branch; whether they apply to administrators |
+| Code review process | CODEOWNERS; CONTRIBUTING describing review expectations | Required-reviewers setting; whether reviews happen |
+| Pre-commit hooks | `.husky/`, `.pre-commit-config.yaml`, `lefthook.yml`, `lint-staged` config; installed by the setup script; fast checks only | — |
+| Commit naming schema | `commitlint.config.*` or a CI step validating commit messages | — |
+| PR template | `.github/PULL_REQUEST_TEMPLATE.md` or equivalent, prompting for what/why/testing | — |
 
 ## Testing
 
-| Item | In-repo signals | Out-of-repo (→ `Unknown`) | `N/A` if |
+| Standard | In-repo signals | Out-of-repo (→ `Unknown`) | `N/A` if |
 |---|---|---|---|
-| Unit testing | Test files (`*.test.*`, `*_test.py`, `spec/`) present; CI runs them | — | — |
-| Integration testing | Tests hitting real dependencies (testcontainers, local DB in CI service, in-memory HTTP server against real handlers); CI runs them | — | No service boundaries |
-| E2E testing | `e2e/`, `tests/e2e/`, Playwright/Cypress/Selenium config; CI or scheduled workflow runs them | — | Library with no user flows |
+| Unit testing | Test files present and run in CI; per-test data isolation rather than shared mutable fixtures | — | — |
+| Integration testing | Tests against real dependencies (testcontainers, a CI service database, real handlers); run in CI | — | No service boundaries |
+| End-to-end testing | `e2e/` or Playwright/Cypress config; run in CI or on a schedule; run against production after deploy at the top level | — | Library with no user flows |

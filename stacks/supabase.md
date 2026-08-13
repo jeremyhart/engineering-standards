@@ -4,7 +4,7 @@
 
 Stack-specific guidance per standard. Section names match standard names in `standards.md` exactly.
 
-## Migrations
+## Database changes only through code
 
 `supabase migration new` / versioned SQL in `supabase/migrations/`; no schema edits via Studio in staging/prod.
 
@@ -12,7 +12,7 @@ Stack-specific guidance per standard. Section names match standard names in `sta
 
 `supabase db push` (or migration apply) runs in the deploy pipeline before code deploy.
 
-## Migrations rehearsed on staging
+## Migrations rehearsed before production
 
 Branch databases or a staging project; every migration applied there first.
 
@@ -28,15 +28,15 @@ Row Level Security enabled on all tables; policies reviewed. `service_role` key 
 
 `service_role` and DB credentials in the platform secret store; `anon` key only in clients.
 
-## Backup & restore procedure
+## Backup and restore
 
 PITR enabled on paid projects; restore procedure documented and tested.
 
-## Prod access control
+## Production access control
 
 Studio/dashboard access limited and reviewed; direct DB access via defined roles only.
 
-## Auth gates deny by default
+## Deny-by-default auth
 
 RLS on every table with no permissive default policies; new tables get deny-all until policies added.
 

@@ -4,7 +4,7 @@
 
 Stack-specific guidance per standard. Section names match standard names in `standards.md` exactly.
 
-## IaC
+## Infrastructure as code
 
 Bicep (or Terraform azurerm). No portal-created resources; drift checked.
 
@@ -36,7 +36,7 @@ Azure Monitor alert rules on failures and key thresholds; action groups configur
 
 Budget + cost alerts on the subscription/resource group; spend reviewed regularly.
 
-## Backup & restore procedure
+## Backup and restore
 
 Automated backups on the data tier (e.g. point-in-time restore); restore rehearsed.
 
@@ -44,7 +44,7 @@ Automated backups on the data tier (e.g. point-in-time restore); restore rehears
 
 App Insights distributed tracing with W3C `traceparent` propagation; operation IDs on every log entry.
 
-## Rate limiting & abuse protection
+## Rate limiting and abuse protection
 
 API Management rate-limit policies or Front Door/App Gateway WAF rules; per-key quotas in APIM for costly endpoints.
 

@@ -27,7 +27,7 @@ The skeleton below is a reading guide to the example's DOM, not markup to type o
 <div class="wrap">
 
   <header class="report-header">      <!-- kicker, monospace {project} h1, meta (standards version + date), chip row -->
-    <!-- chips: {type} · solid "Target stage · {stage}" · one mono chip per detected facet -->
+    <!-- chips: {type} · solid "Level · {n} {name}" · one mono chip per detected facet -->
   </header>
 
   <div class="lede-section">          <!-- plain-language finding + stat strip -->
@@ -47,12 +47,12 @@ The skeleton below is a reading guide to the example's DOM, not markup to type o
   <section>05 · In good standing</section> <!-- Met rows, first 5 shown, rest .extra behind a toggle -->
 
   <section class="plain">              <!-- deferred + N/A, de-emphasised, side by side -->
-    <!-- "Not yet expected at {stage}" with short/more spans behind a toggle · "Not applicable" -->
+    <!-- "Not yet expected at level {n}" with short/more spans behind a toggle · "Not applicable" -->
   </section>
 
   <section>06 · Why now</section>      <!-- .case-card with Business/Engineering tabs (Business default). OMIT when no actionable gaps -->
 
-  <footer>…{total} standards evaluated · {applicable} apply at {stage} · standards v{VERSION} … {project} · {date}</footer>
+  <footer>…{total} standards evaluated · {applicable} apply at level {n} · standards v{VERSION} … {project} · {date}</footer>
 
 </div>
 <script>/* see Interactions */</script>
@@ -62,18 +62,18 @@ The skeleton below is a reading guide to the example's DOM, not markup to type o
 
 ## No banner, no grade
 
-There is deliberately no colour-coded banner and no letter/level grade. Severity is communicated by *what leads*: if there is a breach-risk gap, section 01 leads with it in red; if not, omit section 01 entirely and let the lede carry a calmer finding. Never invent a score — state stage, coverage, and the finding in prose.
+There is deliberately no colour-coded banner and no letter grade. Severity is communicated by *what leads*: if there are priority gaps, section 01 leads with them in red; if not, omit section 01 entirely and let the lede carry a calmer finding. Never invent a score — state the level, coverage, and the finding in prose.
 
 ## Section rules
 
-- **Lede** — one or two sentences a non-engineer understands: how many standards are met of those that apply at the target stage, the sharpest risk, and the rough total effort. The stat strip and note must reconcile with the markdown coverage line.
-- **01 · Priority** — only breach-risk gaps (`Causes breach` at or below target stage). Red `h2` naming the worst outcome; grid items each show name, one-line evidence, and a `Missing · {Category} · Effort {S/M/L}` tag. Omit the section when there are none.
+- **Lede** — one or two sentences a non-engineer understands: the level the project was rated at and why, how many standards are met of those that apply at that level, the sharpest risk, and the rough total effort. The stat strip and note must reconcile with the markdown coverage line.
+- **01 · Priority** — gaps two or more levels below what is required, plus any control that blocks others as a `Requires:` prerequisite. Red `h2` naming the worst outcome; grid items each show name, one-line evidence, and a `Missing · {Category} · Effort {S/M/L}` tag. Omit the section when there are none.
 - **02 · Next steps** — the ranked recommendation list from step 5 (risk severity desc, then effort asc), 3–5 items, each with a plain-language cost ("hours", "half a day").
-- **03 · All gaps** — every `Missing`/`Partial` row at or below target stage, same rows and order as the markdown report. Status badge (Missing = outlined dark, Partial = filled grey), evidence line, category, risk with a dot (red for breach), effort in mono.
+- **03 · All gaps** — every `Missing`/`Partial`/`Blocked` control below the required level, same rows and order as the markdown report. Status badge (Missing = outlined dark, Partial = filled grey), evidence line, category, the level reached versus required with a dot (red where two or more levels short), effort in mono.
 - **04 · Unverified** — one dashed card per `Unknown` row with the exact out-of-repo check.
 - **04b · Verified against live infrastructure** (optional) — only when a live connection (step 2) turned previously-`Unknown` rows into `Met`/`Partial`. One solid `.verified-card` per such row, using the **same vertical stack** as `.unknown-card` (name over one-line finding); a `✓` is appended to the name via CSS. These rows are already folded into the counts above — this section just shows the reader what was checked live. Do **not** lay the card out as name-beside-detail columns. Omit the whole section when nothing was verified live.
 - **05 · In good standing** — `Met` rows as two-column item/evidence lines; show the first 5, hide the rest as `.extra` behind a "Show all N" toggle.
-- **Deferred / N/A** (`section.plain`) — de-emphasised. "Not yet expected at {stage}" lists Prod-only items with a short→more toggle; "Not applicable" states each row and its reason.
+- **Deferred / N/A** (`section.plain`) — de-emphasised. "Not yet expected at level {n}" lists controls whose definitions begin above the required level, with a short→more toggle; "Not applicable" states each control and the precondition that failed.
 - **06 · Why now** — the investment case (SKILL.md step 8) as one card with Business/Engineering tabs; Business selected by default. Omit when there are no actionable gaps.
 
 ## Styling

@@ -4,7 +4,7 @@
 
 Stack-specific guidance per standard. Section names match standard names in `standards.md` exactly.
 
-## IaC
+## Infrastructure as code
 
 `wrangler.jsonc` is the source of truth for Worker config (bindings, routes, vars); dashboard-only config avoided. Terraform/Pulumi for zone-level resources.
 
@@ -16,7 +16,7 @@ Account ID, zone, Worker names, KV/D1/R2/Queue binding names recorded.
 
 `wrangler secret put` / Secrets Store; never `vars` in wrangler config or `.dev.vars` committed.
 
-## Continuous deployment
+## Automated deployment
 
 Workers Builds or CI running `wrangler deploy`; no deploys from dev machines.
 
@@ -44,7 +44,7 @@ Health route on the Worker; monitored externally (Workers have no liveness probe
 
 Log the `cf-ray` header (or generate a request ID) on every log line; forward it on outbound subrequests and service bindings.
 
-## Rate limiting & abuse protection
+## Rate limiting and abuse protection
 
 Cloudflare WAF + Rate Limiting rules at the zone; Workers Rate Limiting binding or Durable Object counters for per-user quotas.
 

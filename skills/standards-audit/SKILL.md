@@ -1,28 +1,36 @@
 ---
 name: standards-audit
-description: 'Audit a codebase against the engineering-standards checklist and report which items are met, missing, unknown, or not applicable. Use when asked to audit, assess, grade, or score a project against engineering or coding standards, or to check readiness for a given project stage (Prototype/Internal/Prod).'
-argument-hint: 'Optional: target stage (Prototype/Internal/Prod) or category to focus on'
+description: 'Audit a codebase against the Software Project Standards and report which controls are met, missing, unknown, blocked, or not applicable. Use when asked to audit, assess, grade, or score a project against engineering or coding standards, or to check whether it meets the level its impact demands (Personal/Shared/Critical/Contracted).'
+argument-hint: 'Optional: target level (Personal/Shared/Critical/Contracted) or category to focus on'
 ---
 
 # Standards Audit
 
-Audits a codebase against the checklist in `standards.md` and reports fit — what's in place, what's missing, what can't be checked from the repo alone, and what matters most given the project's stage.
+Audits a codebase against the standard and reports fit — what's in place, what's missing, what can't be checked from the repo alone, and what matters most given the project's level.
 
-The checklist and stack facets ship inside this skill: resolve `standards.md` at [references/standards.md](./references/standards.md) and facets under [references/stacks/](./references/stacks/). (In the engineering-standards source repo they instead live two levels up from this file — fall back to `../../standards.md` and `../../stacks/` if the `references/` copies are absent.) Never fetch them from the network. If neither location exists, the skill was installed incompletely; tell the user to re-copy the full `standards-audit` skill folder.
+The standard ships inside this skill: resolve `standards.md` at [references/standards.md](./references/standards.md), the level model at [references/levels.md](./references/levels.md), per-control definitions under [references/sections/](./references/sections/), and stack facets under [references/stacks/](./references/stacks/). (In the source repo they instead live two levels up from this file — fall back to `../../standards.md`, `../../levels.md`, `../../sections/` and `../../stacks/` if the `references/` copies are absent.) Never fetch them from the network. If neither location exists, the skill was installed incompletely; tell the user to re-copy the full `standards-audit` skill folder.
+
+**`standards.md` is only an index.** It names the controls; the section files define what each one means at each level. You cannot grade a control without reading its section entry.
 
 ## When to Use
 
 - User asks to audit, assess, grade, or score a codebase against engineering or coding standards
-- User asks "are we ready for prod" or similar stage-readiness questions
+- User asks "are we ready for prod" or similar readiness questions
 - User asks which standards to tackle next given limited time or effort
 
 ## Procedure
 
-### 1. Determine target stage
+### 1. Determine the required level
 
-Use the argument if given; otherwise infer from context (e.g. a repo serving real users is at least `Prod`). Stage order: `Prototype` < `Internal` < `Prod`.
+Read [references/levels.md](./references/levels.md) first — it defines the four levels and how to rate a project.
 
-**Identify, don't interrogate:** detect target stage, project type, and applicable facets yourself and state them as assumptions at the top of the report. Only pause to ask the user when a detection is genuinely ambiguous — conflicting signals, no facet Detect match on an obvious stack, or a target stage that can't be inferred. Never ask about things the repo already answers.
+Use the argument if given. Otherwise **rate the project's impact** from the four questions in `levels.md` (disruption, disclosure, loss, obligation), taking the worst answer, using evidence from the repo: what the README says the project is, whether it serves external users, whether it holds personal or financial data, whether it's the system of record for anything, whether there are customers under agreement.
+
+The required level is `max(impact, desired maturity)` — impact is the floor; a user asking to be graded higher raises it, never lowers it.
+
+**Rate by consequence, not audience.** A one-person tool holding irreplaceable or sensitive data is `Critical`, not `Personal`.
+
+**Identify, don't interrogate:** detect level, project type, and applicable facets yourself and state them as assumptions at the top of the report. Only pause to ask when a detection is genuinely ambiguous — conflicting signals, no facet Detect match on an obvious stack, or an impact rating the repo gives no evidence for. Never ask about things the repo already answers.
 
 ### 2. Detect stack, cloud/hosting, and offer live connections
 
@@ -36,7 +44,7 @@ Before auditing, identify the environment and try to connect to it — live acce
 
 State each detection at the top of the report.
 
-**b. Offer to connect.** Many checklist rows can only be verified outside the repo (GitHub branch protection, cloud IAM/RBAC, billing alerts, WAF rules, deployed config). Tell the user, up front and explicitly:
+**b. Offer to connect.** Many controls can only be verified outside the repo (GitHub branch protection, cloud IAM/RBAC, billing alerts, WAF rules, deployed config). Tell the user, up front and explicitly:
 
 > Connecting me to your source host and cloud/hosting provider would make this report much more relevant and complete — I can verify settings that aren't visible in the repo instead of leaving them Unknown.
 
@@ -74,37 +82,45 @@ Record the detected type in the report; confirm with the user only if the signal
 
 ### 4. Load evidence signals and stack facets
 
-Read [references/evidence-signals.md](./references/evidence-signals.md) — it maps each checklist row to concrete in-repo signals and flags items that require out-of-repo verification.
+Read [references/evidence-signals.md](./references/evidence-signals.md) — it maps each control to concrete in-repo signals and flags those that require out-of-repo verification.
 
 Then detect applicable stack facets: read the `**Detect:**` line of each `stacks/<facet>.md` (resolved as above); for every facet that applies, use its sections to interpret the corresponding standards with stack-specific tooling (facet headings match standard names exactly).
 
-Also inventory repo-level agent skills (`.agents/skills/`, `.claude/skills/`, `.github/skills/`, `skills/`) — these are evidence for AI-Assisted Development rows (Automated diagnosis skills, Agent config reviewed as code, Spec-first agent workflow). Ignore user-global skills (e.g. `~/.agents/skills/`): personal machine state, not codebase quality.
+Also inventory repo-level agent skills (`.agents/skills/`, `.claude/skills/`, `.github/skills/`, `skills/`) — these are evidence for `Automated diagnosis skills` and `Agent configuration reviewed as code` (AI-Assisted Development) and `Spec-first agent workflow` (Development Workflow). Ignore user-global skills (e.g. `~/.agents/skills/`): personal machine state, not codebase quality.
 
-### 5. Audit each row
+### 5. Audit each control
 
-For every row in `standards.md` (resolved as above), assign one status:
+For every control in `standards.md`, read its entry in the relevant `sections/` file and grade it **against the definition at the required level** — not against the highest level, and not against a general impression of the control.
 
-- **`Met`** — all in-repo signals for the item are present
-- **`Partial`** — some signals present but not all (e.g. linter configured but not enforced in CI); note which are missing
-- **`Missing`** — no in-repo signals found, and the item is verifiable from the repo
-- **`Unknown`** — item requires out-of-repo verification that could not be performed; list exactly what to check
-- **`N/A`** — item doesn't apply based on step 3 project type; state why
+Assign one status:
 
-For rows requiring out-of-repo verification, use the live connections from step 2:
+- **`Met`** — the definition at the required level is satisfied
+- **`Partial`** — some of that level's definition is satisfied but not all (e.g. linter configured but not enforced in CI); note which part is missing, and name the level actually reached
+- **`Missing`** — nothing of the required level's definition is in place, and it is verifiable from the repo
+- **`Unknown`** — requires out-of-repo verification that could not be performed; list exactly what to check
+- **`Blocked`** — the control has a `Requires:` prerequisite that is `Missing` or `Partial`. Report the prerequisite as the actionable gap and do **not** recommend this control until it is met — implementing it first is worse than not implementing it (e.g. automated rollback over destructive migrations)
+- **`N/A`** — an `Applies when:` precondition does not hold, or the conditional category's precondition does not hold. **Always cite the precondition that failed** — never mark N/A without one
 
-- If the relevant service is **connected**, actually perform the check (read-only) and assign `Met` / `Partial` / `Missing` from what you find — don't default to `Unknown`.
-- If the service is **unavailable** or **declined**, mark the row `Unknown` and name the specific setting to check plus how to enable the connection.
+Also record the level each control actually reaches, where it's higher or lower than required — that is what lets the report show distance rather than a binary.
 
-Do not silently skip rows. Every row in `standards.md` must get one of these statuses.
+For controls requiring out-of-repo verification, use the live connections from step 2:
+
+- If the relevant service is **connected**, actually perform the check (read-only) and assign a real status from what you find — don't default to `Unknown`.
+- If the service is **unavailable** or **declined**, mark it `Unknown` and name the specific setting to check plus how to enable the connection.
+
+**Sampled controls.** Some controls (notably `Secure coding patterns`) cannot be exhaustively verified. Sample the evidence — parameterised queries rather than string-built SQL, a validation library used at boundaries, output encoding by default — and state in the report that the finding is based on sampling rather than exhaustive verification.
+
+Do not silently skip controls. Every control in `standards.md` must get one of these statuses.
 
 ### 6. Filter and rank recommendations
 
-Recommendations are drawn **only** from `Missing` and `Partial` rows where `Min stage` ≤ target stage. Rows failing above the target stage are not gaps — they're not yet expected; report them separately so the user isn't pushed to gold-plate.
+Recommendations are drawn **only** from `Missing`, `Partial` and prerequisite-of-`Blocked` controls that are below the required level. A control whose definition begins above the required level is not a gap — it isn't expected yet; report those separately so the user isn't pushed to gold-plate.
 
 Rank by:
 
-1. `Risk if absent` severity: `Causes breach` > `Causes incidents` > `Slows team` > `Polish`
-2. `Effort` asc: `S` > `M` > `L`
+1. **Distance below the required level** — a control at nothing when level 3 is required outranks one sitting at level 2 of 3
+2. **Prerequisites first** — a control that other controls declare as `Requires:` outranks its dependants
+3. **Effort at the required level** ascending (`S` > `M` > `L`), read from that level's row in the section file
 
 Take the top 3-5.
 
@@ -123,12 +139,12 @@ Also write a self-contained `standards-audit.html` at the repo root (inline CSS 
 1. Read the full contents of [references/example-report.html](./references/example-report.html).
 2. Copy it byte-for-byte as your starting point — the entire `<style>` block, every class name, every `<div>` nesting level, the toggle/tab `<script>`, all of it, unchanged.
 3. Edit only the **content nodes** (text inside tags, table rows, card lists, counts) to reflect this audit's data. Never rename a class, restructure a section's DOM, change a colour token, alter padding/grid values, or add new CSS rules. If a section template repeats (e.g. a `.priority-item`, a table `<tr>`, an `.unknown-card`), clone that exact block for each additional row and only edit its text.
-4. Add or remove whole `<section>` blocks only where the example itself says to (e.g. omit `01 · Priority` when there are no breach-risk gaps, omit `04b` when nothing was verified live) — never restyle a kept section.
+4. Add or remove whole `<section>` blocks only where the example itself says to (e.g. omit `01 · Priority` when there are no priority gaps, omit `04b` when nothing was verified live) — never restyle a kept section.
 5. Before writing the file, diff your output against the example's `<style>` block in your head: if you cannot point to the exact example line a CSS rule came from, delete it.
 
 [references/html-report.md](./references/html-report.md) explains *which data goes in which section* — use it only to know what content to substitute, never as a spec to re-derive markup from.
 
-Section order (all copied structurally from the example): `01 · Priority` (breach-risk gaps, red; omit if none) → `02 · Next steps` → `03 · All gaps` (table) → `04 · Unverified` → `04b · Verified against live infrastructure` (omit if nothing verified live) → `05 · In good standing` → deferred/N-A → `06 · Why now`.
+Section order (all copied structurally from the example): `01 · Priority` (gaps two or more levels below required, plus any control blocking others; red; omit if none) → `02 · Next steps` → `03 · All gaps` (table) → `04 · Unverified` → `04b · Verified against live infrastructure` (omit if nothing verified live) → `05 · In good standing` → deferred/N-A → `06 · Why now`.
 
 Detail content mirrors the markdown report — same rows and ordering. Investment case (`06 · Why now`) only when there are actionable gaps; see step 9.
 
@@ -136,41 +152,46 @@ Tell the user where the file was written.
 
 ### 9. Investment case
 
-When there are actionable gaps, include an **Investment case** section (in the HTML report; offer it at the end of the markdown report too). Its purpose is to arm the developer to argue for codebase investment when it competes with product features. Two pitches, each ≤ 150 words, generated from the actionable gap list using the Risk and Effort columns:
+When there are actionable gaps, include an **Investment case** section (in the HTML report; offer it at the end of the markdown report too). Its purpose is to arm the developer to argue for codebase investment when it competes with product features. Two pitches, each ≤ 150 words, generated from the actionable gap list using the project's level and the per-level effort from the section files:
 
-- **Business case** (primary — written to be handed to a non-technical stakeholder): translate gaps into business outcomes — outage risk, breach exposure, delivery slowdown. No tool or standard names. Contrast the cost of fixing now (sum of Effort, in rough days) with the compounding cost of deferring. Explicitly counter "it's not a feature": this work is what keeps features shipping at the current pace.
-- **Technical case** — for peers and leads: name the rows, the tools, and the first action for each, and why now (retrofitting cost grows with the codebase).
+- **Business case** (primary — written to be handed to a non-technical stakeholder): translate gaps into business outcomes, taking the consequence from the level the project was rated at and *why* it was rated there — a `Critical` rating means the business stops or something irreplaceable is lost, and the gaps are what stand between the project and that. No tool or standard names. Contrast the cost of fixing now (sum of the effort at the required level, in rough days) with the compounding cost of deferring. Explicitly counter "it's not a feature": this work is what keeps features shipping at the current pace.
+- **Technical case** — for peers and leads: name the controls, the level each currently reaches versus the level required, the tools, and the first action for each, plus why now (retrofitting cost grows with the codebase).
 
-Do not inflate: if the actionable gaps are all `Slows team`/`Polish`, say so honestly — the case is about pace, not risk.
+Do not inflate. If the project rates `Personal` or `Shared` and the gaps are small, say so honestly — the case is about pace, not catastrophe. Never argue from a consequence the rating doesn't support.
 
 ## Output Format
 
 ```markdown
-## Standards Audit — <project> (type: <type>, target stage: <stage>)
+## Standards Audit — <project> (type: <type>, level: <level>)
 
+**Level:** <n · Name> — <the answer that set it, e.g. "the only copy of order records">
 **Stack:** <facets> · **Source host:** <host> · **Cloud/hosting:** <provider>
 **Live access:** GitHub <connected|unavailable|declined> · <cloud> <connected|unavailable|declined>
-**Completeness:** <Complete | ⚠️ Incomplete — <services> not reached; Unknown rows tied to them unverified>
+**Completeness:** <Complete | ⚠️ Incomplete — <services> not reached; Unknown controls tied to them unverified>
 
-**Coverage:** X Met · Y Partial · Z Missing · U Unknown · N N/A (out of T items)
+**Coverage:** X Met · Y Partial · Z Missing · B Blocked · U Unknown · N N/A (out of T controls)
 
-### Gaps to act on (Missing or Partial, Min stage ≤ target)
-| Status | Item | Category | Risk | Notes | Effort |
-|---|---|---|---|---|---|
-| Missing | ... | ... | ... | ... | ... |
+### Gaps to act on (below the required level)
+| Status | Standard | Category | Reaches | Required | Notes | Effort |
+|---|---|---|---|---|---|---|
+| Missing | ... | ... | — | 3 | ... | M |
 
-### Not yet expected at this stage (Missing or Partial, Min stage > target)
-Informational — no action needed until the project advances a stage.
-| Status | Item | Category | Min stage | Effort |
-|---|---|---|---|---|
+### Blocked (prerequisite not met)
+| Standard | Blocked by | Why it matters |
+|---|---|---|
+
+### Not yet expected at this level
+Informational — no action needed unless the project's impact rises.
+| Standard | Category | First expected at |
+|---|---|---|
 
 ### Requires out-of-repo verification (Unknown)
-| Item | Category | What to check |
+| Standard | Category | What to check |
 |---|---|---|
 | ... | ... | ... |
 
 ### Not applicable
-| Item | Reason |
+| Standard | Failed precondition |
 |---|---|
 
 ### Recommended next steps
@@ -181,5 +202,6 @@ Informational — no action needed until the project advances a stage.
 ## Notes
 
 - If the user scoped the request to a single category, only audit that category but still detect project type and produce the coverage line for that subset.
-- If `standards.md` has an `## Unsorted` section, audit its rows like any other category.
+- If `standards.md` has an `## Unsorted` section, audit its controls like any other category.
+- Cite controls as *Category N* (e.g. *Security 4*) where a precise reference helps — standards are numbered within their category.
 - If an evidence signal in [references/evidence-signals.md](./references/evidence-signals.md) is missing for a row, fall back to the row's description in `standards.md` and note the gap in the report so signals can be added later.

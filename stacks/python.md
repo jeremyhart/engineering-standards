@@ -6,7 +6,7 @@ Stack-specific guidance per standard. Section names match standard names in `sta
 
 ## Pre-commit hooks
 
-`pre-commit` framework with ruff (lint + format) and mypy hooks; config committed.
+`pre-commit` framework with ruff (lint + format); config committed. Leave mypy to pre-push or CI — it's too slow for a commit hook.
 
 ## Pinned tool versions
 
@@ -16,7 +16,7 @@ Stack-specific guidance per standard. Section names match standard names in `sta
 
 ruff format (or black), config in `pyproject.toml`, checked in CI.
 
-## Typecheck
+## Type safety
 
 mypy (or pyright) in strict mode on new code; run in CI.
 
@@ -24,7 +24,7 @@ mypy (or pyright) in strict mode on new code; run in CI.
 
 ruff with a meaningful rule set (not just defaults), zero errors in CI.
 
-## Dependency vuln scanning
+## Dependency vulnerability scanning
 
 `pip-audit` or Dependabot/Renovate; runs in CI.
 
@@ -32,11 +32,11 @@ ruff with a meaningful rule set (not just defaults), zero errors in CI.
 
 Task runner (`justfile`, `Makefile`, or `poe`/`hatch` scripts) exposing `dev`, `test`, `lint`, `format`, `typecheck`.
 
-## `.env.example`
+## Validated configuration at startup
 
 Settings parsed into a typed object at startup (pydantic-settings) with clear errors on missing/invalid vars.
 
-## Secure coding baseline
+## Secure coding patterns
 
 Validate external input with pydantic at boundaries; parameterised queries via the ORM/driver only — no string-built SQL.
 

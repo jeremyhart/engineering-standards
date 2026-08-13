@@ -16,11 +16,11 @@ Image built once, tagged immutably (commit SHA), promoted staging → prod by re
 
 `HEALTHCHECK` in Dockerfile / orchestrator probes wired to the app's health endpoint.
 
-## Setup docs & script
+## Setup docs and script
 
 `compose up` brings up the full local stack (app + DB + dependencies) in one command.
 
-## Dependency vuln scanning
+## Dependency vulnerability scanning
 
 Image scanning (Trivy/Grype or registry-native) in CI; blocks on critical findings.
 

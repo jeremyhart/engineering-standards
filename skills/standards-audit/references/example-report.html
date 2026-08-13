@@ -214,13 +214,13 @@
         <h1>atlasroute-api</h1>
       </div>
       <div class="report-meta">
-        <div>Standards v0.1.0</div>
+        <div>Standards v1.0.0</div>
         <div>Generated 12 Aug 2026</div>
       </div>
     </div>
     <div class="chips">
       <span class="chip">Service</span>
-      <span class="chip chip-solid">Target stage · Internal</span>
+      <span class="chip chip-solid">Level · 3 Critical</span>
       <span class="chip chip-mono">typescript</span>
       <span class="chip chip-mono">supabase</span>
       <span class="chip chip-mono">cloudflare</span>
@@ -229,7 +229,7 @@
 
   <div class="lede-section">
     <p class="lede">
-      Meets <strong>22 of 35 standards</strong> expected at Internal stage.
+      Meets <strong>22 of 35 standards</strong> required at level 3 · Critical — the only copy of customer order data.
       <strong>Two gaps could expose customer data;</strong> full fixes are about three days.
     </p>
     <div class="stats">
@@ -238,7 +238,7 @@
       <div class="stat"><span class="num">6</span><span class="label">Missing</span></div>
       <div class="stat"><span class="num dim">3</span><span class="label">Unknown</span></div>
     </div>
-    <div class="stats-note">63% met of the 35 standards that apply at Internal stage · 44 not yet expected until Prod · 2 N/A</div>
+    <div class="stats-note">63% met of the 35 standards that apply at level 3 · 44 not yet expected below level 4 · 2 N/A</div>
   </div>
 
   <section>
@@ -251,10 +251,10 @@
       <div class="priority-item">
         <span class="name">Secret scanning</span>
         <span class="detail">No scanner in the pipeline; one revoked key found in git history.</span>
-        <span class="tag">Missing · CI · Effort S</span>
+        <span class="tag">Missing · Security · Effort S</span>
       </div>
       <div class="priority-item">
-        <span class="name">Auth gates deny by default</span>
+        <span class="name">Deny-by-default auth</span>
         <span class="detail">RLS is enabled, but two tables have permissive policies and there is no deny-all default.</span>
         <span class="tag">Missing · Security · Effort M</span>
       </div>
@@ -264,7 +264,7 @@
   <section>
     <div class="section-no">02 · Next steps</div>
     <h2>Do this next</h2>
-    <p class="section-sub">Ranked by risk removed per hour spent.</p>
+    <p class="section-sub">Ranked by distance below level 3, then effort.</p>
     <ol class="steps">
       <li>
         <span class="n">01</span>
@@ -273,17 +273,17 @@
       </li>
       <li>
         <span class="n">02</span>
-        <span class="body"><span class="title">Auth gates deny by default</span><span class="detail">Deny-all RLS migration, then explicit grants per table.</span></span>
+        <span class="body"><span class="title">Deny-by-default auth</span><span class="detail">Deny-all RLS migration, then explicit grants per table.</span></span>
         <span class="cost">half a day</span>
       </li>
       <li>
         <span class="n">03</span>
-        <span class="body"><span class="title">Dependency vuln scanning</span><span class="detail">Turn on the update bot and gate CI on pnpm audit.</span></span>
+        <span class="body"><span class="title">Dependency vulnerability scanning</span><span class="detail">Turn on the update bot and gate CI on pnpm audit.</span></span>
         <span class="cost">an hour</span>
       </li>
       <li>
         <span class="n">04</span>
-        <span class="body"><span class="title">Typecheck in CI</span><span class="detail">One line in ci.yml — fix the 4 errors on main first.</span></span>
+        <span class="body"><span class="title">Type safety in CI</span><span class="detail">One line in ci.yml — fix the 4 errors on main first.</span></span>
         <span class="cost">hours</span>
       </li>
       <li>
@@ -297,76 +297,76 @@
   <section>
     <div class="section-no">03 · All gaps</div>
     <h2>Gaps to act on</h2>
-    <p class="section-sub">10 standards missing or partially met at the Internal stage.</p>
+    <p class="section-sub">10 standards below the level 3 definition.</p>
     <div class="table-card">
       <table>
         <thead>
           <tr>
             <th class="col-status">Status</th>
             <th>Standard</th>
-            <th class="col-risk">Risk</th>
+            <th class="col-risk">Reaches</th>
             <th class="col-effort">Effort</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td><span class="status-badge status-missing">Missing</span></td>
-            <td><div class="gap-cell"><span class="item">Secret scanning</span><span class="evidence">No scanner in pipeline; one revoked key in git history</span><span class="category">CI</span></div></td>
-            <td><span class="risk risk-breach"><span class="dot"></span>Causes breach</span></td>
+            <td><div class="gap-cell"><span class="item">Secret scanning</span><span class="evidence">No scanner in pipeline; one revoked key in git history</span><span class="category">Security</span></div></td>
+            <td><span class="risk risk-breach"><span class="dot"></span>— of 3</span></td>
             <td class="effort">S</td>
           </tr>
           <tr>
             <td><span class="status-badge status-missing">Missing</span></td>
-            <td><div class="gap-cell"><span class="item">Auth gates deny by default</span><span class="evidence">Two tables have permissive RLS policies</span><span class="category">Security</span></div></td>
-            <td><span class="risk risk-breach"><span class="dot"></span>Causes breach</span></td>
+            <td><div class="gap-cell"><span class="item">Deny-by-default auth</span><span class="evidence">Two tables have permissive RLS policies</span><span class="category">Security</span></div></td>
+            <td><span class="risk risk-breach"><span class="dot"></span>— of 3</span></td>
             <td class="effort">M</td>
           </tr>
           <tr>
             <td><span class="status-badge status-missing">Missing</span></td>
-            <td><div class="gap-cell"><span class="item">Dependency vuln scanning</span><span class="evidence">No update bot, no audit step; 3 known-vulnerable transitive deps</span><span class="category">CI</span></div></td>
-            <td><span class="risk risk-incident"><span class="dot"></span>Causes incidents</span></td>
+            <td><div class="gap-cell"><span class="item">Dependency vulnerability scanning</span><span class="evidence">No update bot, no audit step; 3 known-vulnerable transitive deps</span><span class="category">CI</span></div></td>
+            <td><span class="risk risk-incident"><span class="dot"></span>1 of 3</span></td>
             <td class="effort">S</td>
           </tr>
           <tr>
             <td><span class="status-badge status-missing">Missing</span></td>
-            <td><div class="gap-cell"><span class="item">IaC</span><span class="evidence">Supabase + Cloudflare resources created via dashboards; nothing reproducible</span><span class="category">Infrastructure</span></div></td>
-            <td><span class="risk risk-incident"><span class="dot"></span>Causes incidents</span></td>
+            <td><div class="gap-cell"><span class="item">Infrastructure as code</span><span class="evidence">Supabase + Cloudflare resources created via dashboards; nothing reproducible</span><span class="category">Infrastructure</span></div></td>
+            <td><span class="risk risk-incident"><span class="dot"></span>1 of 3</span></td>
             <td class="effort">M</td>
           </tr>
           <tr>
             <td><span class="status-badge status-missing">Missing</span></td>
             <td><div class="gap-cell"><span class="item">Request correlation</span><span class="evidence">No request ID on log lines; debugging requires timestamp archaeology</span><span class="category">Observability</span></div></td>
-            <td><span class="risk risk-slow"><span class="dot"></span>Slows team</span></td>
+            <td><span class="risk risk-slow"><span class="dot"></span>2 of 3</span></td>
             <td class="effort">S</td>
           </tr>
           <tr>
             <td><span class="status-badge status-missing">Missing</span></td>
-            <td><div class="gap-cell"><span class="item">Seeding script</span><span class="evidence">New devs copy a shared dump by hand</span><span class="category">Dev Experience</span></div></td>
-            <td><span class="risk risk-slow"><span class="dot"></span>Slows team</span></td>
+            <td><div class="gap-cell"><span class="item">Seeding script</span><span class="evidence">New devs copy a shared dump by hand</span><span class="category">Developer Environment</span></div></td>
+            <td><span class="risk risk-slow"><span class="dot"></span>2 of 3</span></td>
             <td class="effort">M</td>
           </tr>
           <tr>
             <td><span class="status-badge status-partial">Partial</span></td>
-            <td><div class="gap-cell"><span class="item">Typecheck</span><span class="evidence">Strict mode on, but tsc not run in CI — 4 errors on main</span><span class="category">Code Quality</span></div></td>
-            <td><span class="risk risk-incident"><span class="dot"></span>Causes incidents</span></td>
+            <td><div class="gap-cell"><span class="item">Type safety</span><span class="evidence">Strict mode on, but tsc not run in CI — 4 errors on main</span><span class="category">Code Quality</span></div></td>
+            <td><span class="risk risk-incident"><span class="dot"></span>1 of 3</span></td>
             <td class="effort">M</td>
           </tr>
           <tr>
             <td><span class="status-badge status-partial">Partial</span></td>
             <td><div class="gap-cell"><span class="item">Linting</span><span class="evidence">ESLint configured but not enforced in CI — drift in 14 files</span><span class="category">Code Quality</span></div></td>
-            <td><span class="risk risk-slow"><span class="dot"></span>Slows team</span></td>
+            <td><span class="risk risk-slow"><span class="dot"></span>2 of 3</span></td>
             <td class="effort">S</td>
           </tr>
           <tr>
             <td><span class="status-badge status-partial">Partial</span></td>
             <td><div class="gap-cell"><span class="item">Unit testing</span><span class="evidence">Core pricing logic covered; auth helpers and parsers untested</span><span class="category">Testing</span></div></td>
-            <td><span class="risk risk-incident"><span class="dot"></span>Causes incidents</span></td>
+            <td><span class="risk risk-incident"><span class="dot"></span>1 of 3</span></td>
             <td class="effort">M</td>
           </tr>
           <tr>
             <td><span class="status-badge status-partial">Partial</span></td>
-            <td><div class="gap-cell"><span class="item">CONTEXT.md</span><span class="evidence">Exists but describes the pre-rewrite architecture</span><span class="category">AI-Assisted Development</span></div></td>
-            <td><span class="risk risk-slow"><span class="dot"></span>Slows team</span></td>
+            <td><div class="gap-cell"><span class="item">Agent-readable project context</span><span class="evidence">Exists but describes the pre-rewrite architecture</span><span class="category">AI-Assisted Development</span></div></td>
+            <td><span class="risk risk-slow"><span class="dot"></span>2 of 3</span></td>
             <td class="effort">S</td>
           </tr>
         </tbody>
@@ -450,16 +450,16 @@
   <section class="plain">
     <div class="deferred-grid">
       <div id="deferred">
-        <h2>Not yet expected at Internal stage <span class="count">· 44</span></h2>
+        <h2>Not yet expected at level 3 <span class="count">· 44</span></h2>
         <p>
-          <span id="deferred-short">Error tracking · Health endpoint · Alerting · Rollback strategy · Rate limiting &amp; abuse protection · Backup &amp; restore procedure — all Min stage = Prod.</span>
-          <span id="deferred-more">Error tracking · Health endpoint · Alerting · Rollback strategy · Rate limiting &amp; abuse protection · Backup &amp; restore procedure · SLOs · On-call rotation · Load testing · Audit logging · Data retention policy · Disaster recovery drill — and 32 more. All have Min stage = Prod.</span>
+          <span id="deferred-short">Published API contract · Build provenance · Tenant isolation tests · SLO-driven alerting · Disaster recovery rehearsal · Status page — all first defined at level 4.</span>
+          <span id="deferred-more">Published API contract · Build provenance · Tenant isolation tests · SLO-driven alerting · Disaster recovery rehearsal · Status page · Access reviews with evidence · Secret rotation · Customer data export · API deprecation policy · Penetration testing · Cost per tenant — and 32 more. All first defined at level 4.</span>
         </p>
         <button type="button" class="link-btn" id="deferred-toggle" aria-expanded="false">Show more</button>
       </div>
       <div>
         <h2>Not applicable <span class="count">· 2</span></h2>
-        <p>Accessibility baseline, Component library discipline — API-only service, no frontend.</p>
+        <p>Accessibility baseline — API-only service, no frontend. Log hygiene — no personal data held.</p>
       </div>
     </div>
   </section>
@@ -475,14 +475,14 @@
         </div>
       </div>
       <div class="case-body">
-        <p id="case-biz" role="tabpanel" aria-labelledby="tab-biz">Two of the gaps could expose customer data — a secret sitting in git history and database tables that allow access by default rather than denying it. Neither is a rewrite; both are configuration. The whole action list is roughly three days of engineering time. Deferring compounds the cost, because every feature built from here inherits the same gaps and has to be revisited later. This is not new work for its own sake — it is the maintenance that keeps features shipping at the pace you see today, without a security incident interrupting the roadmap.</p>
-        <p id="case-eng" role="tabpanel" aria-labelledby="tab-eng" hidden>Both breach items are config-level fixes, not projects: push protection plus a CI scan step, and a deny-all RLS migration followed by explicit grants. The typecheck and lint gates are one-liners in ci.yml that stop the drift already visible on main — 4 type errors and 14 unformatted files. IaC is the only item with real scope, and it can start with the Cloudflare config alone. Nothing on this list blocks feature work or requires a freeze; each item lands as an independent PR and can be picked up between features.</p>
+        <p id="case-biz" role="tabpanel" aria-labelledby="tab-biz">This system holds the only copy of customer order data, which is why it is graded at level 3. Two of the gaps could expose that data — a secret sitting in git history and database tables that allow access by default rather than denying it. Neither is a rewrite; both are configuration. The whole action list is roughly three days of engineering time. Deferring compounds the cost, because every feature built from here inherits the same gaps and has to be revisited later. This is not new work for its own sake — it is the maintenance that keeps features shipping at the pace you see today, without a security incident interrupting the roadmap.</p>
+        <p id="case-eng" role="tabpanel" aria-labelledby="tab-eng" hidden>Both data-exposure items are config-level fixes, not projects: push protection plus a CI scan step, and a deny-all RLS migration followed by explicit grants. The type-safety and lint gates are one-liners in ci.yml that stop the drift already visible on main — 4 type errors and 14 unformatted files. Infrastructure as code is the only item with real scope, and it can start with the Cloudflare config alone. Nothing on this list blocks feature work or requires a freeze; each item lands as an independent PR and can be picked up between features.</p>
       </div>
     </div>
   </section>
 
   <footer>
-    <span>79 standards evaluated · 35 apply at Internal stage · standards v0.1.0</span>
+    <span>75 standards evaluated · 35 apply at level 3 · standards v1.0.0</span>
     <span class="mono">atlasroute-api · 12 Aug 2026</span>
   </footer>
 
