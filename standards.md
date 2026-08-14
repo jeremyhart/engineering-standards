@@ -18,12 +18,12 @@ See [sections/ai-assisted-development.md](sections/ai-assisted-development.md).
 
 | # | Standard | Description |
 |---|---|---|
-| 1 | [Agent-readable project context](sections/ai-assisted-development.md#agent-readable-project-context) | The project explains itself to an agent without a human in the loop. |
-| 2 | [Agent configuration reviewed as code](sections/ai-assisted-development.md#agent-configuration-reviewed-as-code) | Agent instructions, skills and hooks go through the same review as application code. |
-| 3 | [Destructive-action guardrails](sections/ai-assisted-development.md#destructive-action-guardrails) | Boundaries on what agents may do, enforced by machinery rather than instructions. |
-| 4 | [Automated post-edit checks](sections/ai-assisted-development.md#automated-post-edit-checks) | Lint and format run automatically after an agent edits code. |
-| 5 | [Agent issue tracking](sections/ai-assisted-development.md#agent-issue-tracking) | Agents know where work is tracked and how to read and file it. |
-| 6 | [Automated diagnosis skills](sections/ai-assisted-development.md#automated-diagnosis-skills) | The repo ships skills that can diagnose failures without a human reconstructing context first. |
+| 1 | [Agent-readable project context](sections/ai-assisted-development.md#agent-readable-project-context) | A committed file (e.g. `AGENTS.md` or `CONTEXT.md`) documents architecture, conventions and gotchas before an agent touches code. |
+| 2 | [Agent configuration reviewed as code](sections/ai-assisted-development.md#agent-configuration-reviewed-as-code) | Agent instructions, skills and hooks are committed to the repo and go through the same PR review as application code. |
+| 3 | [Destructive-action guardrails](sections/ai-assisted-development.md#destructive-action-guardrails) | Actions like force pushes, production access and recursive deletes are blocked by a hook or wrapper, not left to instructions an agent can ignore. |
+| 4 | [Automated post-edit checks](sections/ai-assisted-development.md#automated-post-edit-checks) | A formatter and linter run automatically after every agent edit and auto-fix what they can. |
+| 5 | [Agent issue tracking](sections/ai-assisted-development.md#agent-issue-tracking) | The issue tracker and its labels are named in agent context, with a triage vocabulary marking what's ready for an agent. |
+| 6 | [Automated diagnosis skills](sections/ai-assisted-development.md#automated-diagnosis-skills) | A skill queries deploy state and logs for the project's known failure modes and reports a cause, instead of a human reconstructing context from a log dump. |
 
 ## API & Contracts
 
@@ -33,8 +33,8 @@ can't, it's a promise that costs a version and a conversation to change. See
 
 | # | Standard | Description |
 |---|---|---|
-| 1 | [Interface contract](sections/api-and-contracts.md#interface-contract) | The API shape is described somewhere both sides derive from, so client and server can't drift apart. |
-| 2 | [Published API contract](sections/api-and-contracts.md#published-api-contract) | The API is a promise to outside consumers, so changes are versioned, announced and supported. |
+| 1 | [Interface contract](sections/api-and-contracts.md#interface-contract) | Client and server share generated types or a schema-derived client instead of hand-written duplicates kept in sync by hand. |
+| 2 | [Published API contract](sections/api-and-contracts.md#published-api-contract) | Breaking changes ship as a new, announced API version with a deprecation window, rather than mutating what existing consumers already call. |
 
 ## Code Quality
 
@@ -44,9 +44,9 @@ post-edit hook, pre-commit, and CI as the authority. See
 
 | # | Standard | Description |
 |---|---|---|
-| 1 | [Linting](sections/code-quality.md#linting) | A linter is configured, its findings are acted on, and it's enforced rather than advisory. |
-| 2 | [Formatting](sections/code-quality.md#formatting) | Formatting is automated and not a matter of opinion or review comments. |
-| 3 | [Type safety](sections/code-quality.md#type-safety) | Types are checked automatically, and strictness rises with the cost of being wrong. |
+| 1 | [Linting](sections/code-quality.md#linting) | A linter runs in CI with zero errors allowed, and its rules cover correctness and security patterns, not just style. |
+| 2 | [Formatting](sections/code-quality.md#formatting) | A formatter with committed settings runs across the whole codebase in CI, so no diff carries unrelated reformatting. |
+| 3 | [Type safety](sections/code-quality.md#type-safety) | A type checker runs in CI with zero errors, and escape hatches like `any` or ignore comments need a justifying comment. |
 
 ## Continuous Integration
 
@@ -55,9 +55,9 @@ CI owns the gate and the build. See
 
 | # | Standard | Description |
 |---|---|---|
-| 1 | [PR checks required before merge](sections/continuous-integration.md#pr-checks-required-before-merge) | Build, checks and tests run on every change, and failing them blocks the merge. |
-| 2 | [Dependency update policy](sections/continuous-integration.md#dependency-update-policy) | There's a stated cadence for taking dependency updates. |
-| 3 | [Build provenance](sections/continuous-integration.md#build-provenance) | You can say what a shipped artifact was built from and prove it wasn't altered afterwards. |
+| 1 | [PR checks required before merge](sections/continuous-integration.md#pr-checks-required-before-merge) | Build, lint, types and tests are required status checks that block the merge button, not just a red badge someone can ignore. |
+| 2 | [Dependency update policy](sections/continuous-integration.md#dependency-update-policy) | An update bot's PRs are reviewed and merged on a stated cadence instead of left open indefinitely. |
+| 3 | [Build provenance](sections/continuous-integration.md#build-provenance) | The artifact records the commit it was built from, and at the top level ships with a signed SBOM. |
 
 ## Database
 
@@ -67,11 +67,11 @@ hand — everything arrives through code, reviewed and repeatable. See
 
 | # | Standard | Description |
 |---|---|---|
-| 1 | [Database changes only through code](sections/database.md#database-changes-only-through-code) | Schema and data changes ship as versioned migrations in the repository, reviewed like any other code. |
-| 2 | [Migrations in pipeline](sections/database.md#migrations-in-pipeline) | Migrations are applied automatically by the deploy pipeline, before the code that depends on them. |
-| 3 | [Migrations rehearsed before production](sections/database.md#migrations-rehearsed-before-production) | Every migration runs somewhere else first, against realistic data, before it touches production. |
-| 4 | [Non-destructive migrations](sections/database.md#non-destructive-migrations) | Migrations never drop or rename in a way that breaks the currently running version. |
-| 5 | [Forward-only migrations](sections/database.md#forward-only-migrations) | There are no down migrations — recovery is redeploying the previous version, not reversing the schema. |
+| 1 | [Database changes only through code](sections/database.md#database-changes-only-through-code) | Schema and data changes are versioned migration files reviewed in a PR, never commands typed into a console. |
+| 2 | [Migrations in pipeline](sections/database.md#migrations-in-pipeline) | The deploy pipeline runs migrations automatically, before deploying the code that depends on them. |
+| 3 | [Migrations rehearsed before production](sections/database.md#migrations-rehearsed-before-production) | Every migration runs against a non-production environment with realistic data before it touches production. |
+| 4 | [Non-destructive migrations](sections/database.md#non-destructive-migrations) | Migrations expand and backfill before they contract, so the currently running version is never broken by a schema change. |
+| 5 | [Forward-only migrations](sections/database.md#forward-only-migrations) | There are no down migrations; recovery means redeploying the previous app version against the current schema. |
 
 ## Deployment
 
@@ -79,13 +79,13 @@ See [sections/deployment.md](sections/deployment.md).
 
 | # | Standard | Description |
 |---|---|---|
-| 1 | [Automated deployment](sections/deployment.md#automated-deployment) | Code reaches production through a pipeline; nobody hand-copies files or picks a target. |
-| 2 | [Deployment validation](sections/deployment.md#deployment-validation) | A deploy isn't finished until something has checked that it's actually working. |
-| 3 | [Rollback strategy](sections/deployment.md#rollback-strategy) | There is a known, practised way back to the previous version. |
-| 4 | [Artifact promotion](sections/deployment.md#artifact-promotion) | The thing you tested is the thing you ship — one artifact moves through environments. |
-| 5 | [Feature kill switches](sections/deployment.md#feature-kill-switches) | Risky behaviour can be turned off without a deploy. |
-| 6 | [Automated versioning](sections/deployment.md#automated-versioning) | Version numbers come from commit history rather than someone remembering to bump a file. |
-| 7 | [Automated release notes](sections/deployment.md#automated-release-notes) | What changed in a release is generated, not written from memory. |
+| 1 | [Automated deployment](sections/deployment.md#automated-deployment) | A pipeline deploys on merge or tag; nobody runs a deploy script by hand or picks a target. |
+| 2 | [Deployment validation](sections/deployment.md#deployment-validation) | A post-deploy check exercises a real user path and treats its failure as a failed deploy, not just a health-endpoint ping. |
+| 3 | [Rollback strategy](sections/deployment.md#rollback-strategy) | Redeploying the previous version is a rehearsed, timed procedure, not something worked out from memory during an incident. |
+| 4 | [Artifact promotion](sections/deployment.md#artifact-promotion) | The same build artifact moves unchanged from staging to production, rather than being rebuilt per environment. |
+| 5 | [Feature kill switches](sections/deployment.md#feature-kill-switches) | Risky behaviour sits behind a flag that can be flipped off without a deploy. |
+| 6 | [Automated versioning](sections/deployment.md#automated-versioning) | The version number is derived from commit history at release time, not bumped by hand in a file. |
+| 7 | [Automated release notes](sections/deployment.md#automated-release-notes) | A changelog is generated from commit history on release rather than written from memory. |
 
 ## Developer Environment
 
@@ -93,12 +93,12 @@ See [sections/developer-environment.md](sections/developer-environment.md).
 
 | # | Standard | Description |
 |---|---|---|
-| 1 | [Setup docs and script](sections/developer-environment.md#setup-docs-and-script) | Someone with a clean machine can go from clone to running application by following one documented path. |
-| 2 | [Standard task names](sections/developer-environment.md#standard-task-names) | Common operations have predictable entry points, the same names as everywhere else. |
-| 3 | [Documented configuration](sections/developer-environment.md#documented-configuration) | Every configuration value is listed, with an example, before anyone has to discover it from a crash. |
-| 4 | [Validated configuration at startup](sections/developer-environment.md#validated-configuration-at-startup) | Missing or malformed configuration fails immediately and says what's wrong. |
-| 5 | [Pinned tool versions](sections/developer-environment.md#pinned-tool-versions) | The toolchain is fixed, so builds don't change because someone upgraded something. |
-| 6 | [Seeding script](sections/developer-environment.md#seeding-script) | A repeatable script fills a local database with representative data. |
+| 1 | [Setup docs and script](sections/developer-environment.md#setup-docs-and-script) | One documented command takes a clean checkout to a running app, with no undocumented local state or "ask someone for the file". |
+| 2 | [Standard task names](sections/developer-environment.md#standard-task-names) | `dev`, `build`, `test`, `lint`, `format` and `typecheck` are the entry points, and CI calls the same ones rather than its own commands. |
+| 3 | [Documented configuration](sections/developer-environment.md#documented-configuration) | Every config variable is listed in an example file with what it does, a valid value, and whether it's optional. |
+| 4 | [Validated configuration at startup](sections/developer-environment.md#validated-configuration-at-startup) | The app parses and validates config once at startup and fails immediately naming what's missing, instead of surfacing a crash later. |
+| 5 | [Pinned tool versions](sections/developer-environment.md#pinned-tool-versions) | Runtime and toolchain versions are pinned in a file CI reads too, so an upgrade on one machine can't silently change a build. |
+| 6 | [Seeding script](sections/developer-environment.md#seeding-script) | A script populates a local database with production-shaped data, containing no copied production personal data. |
 
 ## Development Workflow
 
@@ -107,9 +107,9 @@ The ordering and gating of work: intent stated before implementation, at three a
 
 | # | Standard | Description |
 |---|---|---|
-| 1 | [Spec-driven development](sections/development-workflow.md#spec-driven-development) | What a change should do is agreed and written down before it is built. |
-| 2 | [Test-driven development](sections/development-workflow.md#test-driven-development) | Behaviour is expressed as a test before it is implemented. |
-| 3 | [Spec-first agent workflow](sections/development-workflow.md#spec-first-agent-workflow) | Non-trivial agent work goes through align → spec → tasks → implement → review. |
+| 1 | [Spec-driven development](sections/development-workflow.md#spec-driven-development) | Acceptance criteria are written down and reviewed before implementation starts, not backfilled to match what got built. |
+| 2 | [Test-driven development](sections/development-workflow.md#test-driven-development) | Every behaviour change ships with a test change in the same diff, enforced by a coverage gate on the changed lines. |
+| 3 | [Spec-first agent workflow](sections/development-workflow.md#spec-first-agent-workflow) | Non-trivial agent work follows align → spec → tasks → implement → review with a human checkpoint before implementation, not a single prompt. |
 
 ## Documentation
 
@@ -117,10 +117,10 @@ See [sections/documentation.md](sections/documentation.md).
 
 | # | Standard | Description |
 |---|---|---|
-| 1 | [README completeness](sections/documentation.md#readme-completeness) | The README answers, in order: what this is, how to run it, how to deploy it, how it's put together. |
-| 2 | [Architecture decision records](sections/documentation.md#architecture-decision-records) | Significant decisions are recorded with their context and consequences. |
-| 3 | [Infrastructure documentation](sections/documentation.md#infrastructure-documentation) | What exists, where it lives, and who can reach it. |
-| 4 | [Docs drift detection](sections/documentation.md#docs-drift-detection) | Documentation that has drifted from the code is found automatically. |
+| 1 | [README completeness](sections/documentation.md#readme-completeness) | The README covers purpose, local run, deploy, and architecture, in that order. |
+| 2 | [Architecture decision records](sections/documentation.md#architecture-decision-records) | Significant decisions are recorded in a consistent, dated format, naming the rejected alternatives and why. |
+| 3 | [Infrastructure documentation](sections/documentation.md#infrastructure-documentation) | Resources, regions and access are listed somewhere other than one person's memory, generated from infrastructure code where possible. |
+| 4 | [Docs drift detection](sections/documentation.md#docs-drift-detection) | A scheduled check compares docs against the code and reports what's out of date, instead of waiting for someone to notice. |
 
 ## Frontend
 
@@ -129,7 +129,7 @@ See [sections/documentation.md](sections/documentation.md).
 
 | # | Standard | Description |
 |---|---|---|
-| 1 | [Accessibility baseline](sections/frontend.md#accessibility-baseline) | The interface is usable by people who don't use it the way you do. |
+| 1 | [Accessibility baseline](sections/frontend.md#accessibility-baseline) | Semantic markup, labelled controls and keyboard navigation, checked automatically in CI with zero critical violations. |
 
 ## Infrastructure
 
@@ -137,10 +137,10 @@ See [sections/infrastructure.md](sections/infrastructure.md).
 
 | # | Standard | Description |
 |---|---|---|
-| 1 | [Infrastructure as code](sections/infrastructure.md#infrastructure-as-code) | Infrastructure is defined in the repository and applied by tooling, not clicked into being. |
-| 2 | [Hosting details documented](sections/infrastructure.md#hosting-details-documented) | Where the thing actually runs is written down. |
-| 3 | [Non-production environment](sections/infrastructure.md#non-production-environment) | There is somewhere other than production to try things. |
-| 4 | [Environment parity](sections/infrastructure.md#environment-parity) | Environments differ only in ways you know about and have written down. |
+| 1 | [Infrastructure as code](sections/infrastructure.md#infrastructure-as-code) | Resources are defined in code with state stored centrally and locked; nobody creates production resources by clicking in a console. |
+| 2 | [Hosting details documented](sections/infrastructure.md#hosting-details-documented) | Account IDs, regions, DNS records, the pipeline, and third-party dependencies are written down and kept current. |
+| 3 | [Non-production environment](sections/infrastructure.md#non-production-environment) | A staging environment mirrors production's services and deploy path, not just "local dev plus production". |
+| 4 | [Environment parity](sections/infrastructure.md#environment-parity) | Environments are provisioned from the same infrastructure code with parameters, and undocumented differences are treated as defects. |
 
 ## Observability
 
@@ -149,12 +149,12 @@ Seeing inside the running system. Responding to what you see belongs to Operatio
 
 | # | Standard | Description |
 |---|---|---|
-| 1 | [Structured logging](sections/observability.md#structured-logging) | Logs are machine-readable and consistent, so they can be searched rather than read. |
-| 2 | [Log hygiene](sections/observability.md#log-hygiene) | Logs don't become the place your personal data quietly lives forever. |
-| 3 | [Request correlation](sections/observability.md#request-correlation) | A single request can be followed across everything it touched. |
-| 4 | [Error tracking](sections/observability.md#error-tracking) | Unhandled errors reach somewhere a human will see them. |
-| 5 | [Health endpoint](sections/observability.md#health-endpoint) | The system can be asked whether it is working. |
-| 6 | [Alerting](sections/observability.md#alerting) | Something tells a human when the system needs attention, and it's worth waking for. |
+| 1 | [Structured logging](sections/observability.md#structured-logging) | Logs are JSON (or equivalent) with consistent fields and severities, shipped off-host and kept long enough to investigate. |
+| 2 | [Log hygiene](sections/observability.md#log-hygiene) | A field deny-list redacts credentials and personal data at the logger, under a retention window separate from audit logs. |
+| 3 | [Request correlation](sections/observability.md#request-correlation) | A request or trace ID is on every log line and propagates across service boundaries and into background jobs. |
+| 4 | [Error tracking](sections/observability.md#error-tracking) | Unhandled errors are captured with stack trace and context in an error tracker, grouped and triaged rather than piling up. |
+| 5 | [Health endpoint](sections/observability.md#health-endpoint) | An endpoint distinguishes liveness from readiness, checks real dependencies, and is polled continuously from outside. |
+| 6 | [Alerting](sections/observability.md#alerting) | Every alert names an owner and links a runbook; alerts nobody acts on are retuned or removed. |
 
 ## Operations
 
@@ -163,12 +163,12 @@ Running the system and responding when it misbehaves. See
 
 | # | Standard | Description |
 |---|---|---|
-| 1 | [Ownership and on-call](sections/operations.md#ownership-and-on-call) | It is clear who is responsible, and who picks up the phone. |
-| 2 | [Incident response process](sections/operations.md#incident-response-process) | There is a known path from "something is wrong" to "it's fixed and we learned something". |
-| 3 | [Runbooks](sections/operations.md#runbooks) | The known failure modes have written responses, so recovery doesn't depend on who is awake. |
-| 4 | [Backup and restore](sections/operations.md#backup-and-restore) | The data can be brought back, and you know that because you've done it. |
-| 5 | [Status communication](sections/operations.md#status-communication) | Users can find out that the service is degraded without asking you. |
-| 6 | [Cost monitoring](sections/operations.md#cost-monitoring) | Spend is visible before it becomes a surprise. |
+| 1 | [Ownership and on-call](sections/operations.md#ownership-and-on-call) | A named owner and on-call rotation are written down, with an escalation path for when they don't answer. |
+| 2 | [Incident response process](sections/operations.md#incident-response-process) | A documented path runs from alert to owner to fix to review, with severity levels and blameless postmortems for the significant ones. |
+| 3 | [Runbooks](sections/operations.md#runbooks) | Each alert links a runbook accurate enough to follow at 3am without prior context, rehearsed and revised on a schedule. |
+| 4 | [Backup and restore](sections/operations.md#backup-and-restore) | Backups are automated and monitored, and the restore has actually been performed with the time it took recorded. |
+| 5 | [Status communication](sections/operations.md#status-communication) | A status page tells users about degradation without them contacting anyone, updated within a stated timescale. |
+| 6 | [Cost monitoring](sections/operations.md#cost-monitoring) | Budget alerts catch anomalies, not just totals, and spend is attributed per service or tenant. |
 
 ## Security
 
@@ -177,17 +177,17 @@ in the pipeline. See [sections/security.md](sections/security.md).
 
 | # | Standard | Description |
 |---|---|---|
-| 1 | [Runtime secrets management](sections/security.md#runtime-secrets-management) | Secrets live in a managed store, not in the repository and not in configuration files. |
-| 2 | [Secret scanning](sections/security.md#secret-scanning) | Committed secrets are found automatically, with a way to handle findings that doesn't end in the scanner being switched off. |
-| 3 | [Dependency vulnerability scanning](sections/security.md#dependency-vulnerability-scanning) | You know when something you depend on becomes dangerous, or its licence becomes a problem. |
-| 4 | [Least-privilege access](sections/security.md#least-privilege-access) | Every identity has the narrowest access that lets it work. |
-| 5 | [Production access control](sections/security.md#production-access-control) | Who can reach production is deliberate, known and revocable. |
-| 6 | [Deny-by-default auth](sections/security.md#deny-by-default-auth) | Authentication is defined once and applied everywhere; anything not explicitly public is protected. |
-| 7 | [Endpoint authorization](sections/security.md#endpoint-authorization) | Being logged in is not the same as being allowed, and the difference is explicit. |
-| 8 | [Secure coding patterns](sections/security.md#secure-coding-patterns) | The code uses patterns that make whole classes of vulnerability impossible, rather than relying on care. |
-| 9 | [Audit logging](sections/security.md#audit-logging) | Security-relevant events are recorded in a way that survives the person who caused them. |
-| 10 | [Personal data handling](sections/security.md#personal-data-handling) | You know what personal data you hold, where it is, and how to remove it. |
-| 11 | [Rate limiting and abuse protection](sections/security.md#rate-limiting-and-abuse-protection) | Public and expensive endpoints can't be used to exhaust you. |
+| 1 | [Runtime secrets management](sections/security.md#runtime-secrets-management) | Secrets come from a managed store with workload identity, not environment files or committed config, and rotate on a schedule. |
+| 2 | [Secret scanning](sections/security.md#secret-scanning) | A scanner runs on every change and blocks merge on findings, with a baseline for false positives and an expiry date on each suppression. |
+| 3 | [Dependency vulnerability scanning](sections/security.md#dependency-vulnerability-scanning) | A scanner blocks merge on high/critical findings and checks licences against an allowlist; an update bot raises the fixes. |
+| 4 | [Least-privilege access](sections/security.md#least-privilege-access) | Each person and service has its own identity scoped to what it needs, reviewed on a schedule rather than granted once. |
+| 5 | [Production access control](sections/security.md#production-access-control) | Who can reach production is a short, known list granted explicitly, moving toward time-boxed break-glass access only. |
+| 6 | [Deny-by-default auth](sections/security.md#deny-by-default-auth) | Authentication is enforced once, centrally, for every route; a broken check denies by default instead of allowing through. |
+| 7 | [Endpoint authorization](sections/security.md#endpoint-authorization) | Endpoints check the resource belongs to the caller, with tenant isolation proven by an automated test on every change. |
+| 8 | [Secure coding patterns](sections/security.md#secure-coding-patterns) | Queries are parameterised, input is validated against a schema at the boundary, and output is encoded by default, enforced by static analysis in CI. |
+| 9 | [Audit logging](sections/security.md#audit-logging) | Who did what and when is recorded in a log the application itself can't edit, kept separate from and outliving application logs. |
+| 10 | [Personal data handling](sections/security.md#personal-data-handling) | What personal data exists and where is documented, with a tested deletion path that accounts for logs and backups. |
+| 11 | [Rate limiting and abuse protection](sections/security.md#rate-limiting-and-abuse-protection) | Gateway-level rate limits plus per-user quotas on costly operations, with anomalies raising an alert. |
 
 ## Source Control & Review
 
@@ -196,11 +196,12 @@ Version control and the collaboration process around it. See
 
 | # | Standard | Description |
 |---|---|---|
-| 1 | [Branch protection](sections/source-control-and-review.md#branch-protection) | The main branch can't be changed by accident. |
-| 2 | [Code review process](sections/source-control-and-review.md#code-review-process) | Changes are looked at by someone other than their author, where someone else exists. |
-| 3 | [Pre-commit hooks](sections/source-control-and-review.md#pre-commit-hooks) | Fast checks run before a commit is made, so obvious problems never enter history. |
-| 4 | [Commit naming schema](sections/source-control-and-review.md#commit-naming-schema) | Commit messages follow a convention, so history is readable and releases can be derived from it. |
-| 5 | [PR template](sections/source-control-and-review.md#pr-template) | Pull requests arrive with the context a reviewer needs. |
+| 1 | [Version control](sections/source-control-and-review.md#version-control) | Code is managed in a version control system. |
+| 2 | [Branch protection](sections/source-control-and-review.md#branch-protection) | Main blocks direct and force pushes and requires passing checks before merge, with no exception for administrators. |
+| 3 | [Code review process](sections/source-control-and-review.md#code-review-process) | At least one approving review from someone other than the author is required to merge, routed by CODEOWNERS. |
+| 4 | [Pre-commit hooks](sections/source-control-and-review.md#pre-commit-hooks) | Formatting and fast lint run on staged files before commit, installed automatically as part of setup so nobody opts out. |
+| 5 | [Commit naming schema](sections/source-control-and-review.md#commit-naming-schema) | Commit messages follow a convention enforced by tooling, which is what makes automated versioning and changelogs possible. |
+| 6 | [PR template](sections/source-control-and-review.md#pr-template) | A template prompts for what changed, why, how it was tested, and project-specific checks like migrations or rollback. |
 
 ## Testing
 
@@ -209,6 +210,6 @@ Development Workflow. See [sections/testing.md](sections/testing.md).
 
 | # | Standard | Description |
 |---|---|---|
-| 1 | [Unit testing](sections/testing.md#unit-testing) | The logic that matters is covered by fast tests that run on every change. |
-| 2 | [Integration testing](sections/testing.md#integration-testing) | The seams are tested against real dependencies, not mocks of your own assumptions. |
-| 3 | [End-to-end testing](sections/testing.md#end-to-end-testing) | The journeys that matter are exercised the way a user would. |
+| 1 | [Unit testing](sections/testing.md#unit-testing) | Fast tests cover the logic that carries risk, run in CI, block the merge on failure, and isolate their own data. |
+| 2 | [Integration testing](sections/testing.md#integration-testing) | Database queries and HTTP handlers run in CI against real ephemeral instances, not mocks of your own assumptions. |
+| 3 | [End-to-end testing](sections/testing.md#end-to-end-testing) | The critical user journeys are exercised the way a user would, in CI or on a schedule, and again against production post-deploy. |

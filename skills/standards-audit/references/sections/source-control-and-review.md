@@ -2,6 +2,17 @@
 
 Version control and the collaboration process around it.
 
+## Version control
+
+Code is managed in a version control system.
+
+| Level | Definition | Effort |
+|---|---|---|
+| 1 · Personal | All code lives in a repository with readable history | S |
+| 2 · Shared | Repository is shared; branching and merging workflows are defined | S |
+| 3 · Critical | As level 2 | — |
+| 4 · Contracted | As level 2 | — |
+
 ## Branch protection
 
 The main branch can't be changed by accident.
