@@ -63,7 +63,9 @@ Then, for each detected service, prefer an **MCP server** if one is available; f
 
 Check availability of the relevant tools; if a needed MCP tool or CLI isn't present or isn't authenticated, ask the user to enable/authenticate it (e.g. `gh auth login`, `az login`). Don't run any state-changing commands — read-only verification only.
 
-**c. Record connection status.** Track, per service, whether you achieved live access: `connected`, `unavailable` (no MCP/CLI or not authenticated), or `declined` (user opted out). This drives the completeness flag in the report (step 7) and how out-of-repo rows are resolved (step 5).
+**c. Read the repo's live source-control properties.** When the source host is reachable, fetch and record for the report: visibility (private vs public — state it explicitly so an unintentionally public repo is obvious), default branch and its protection, secret scanning and push protection, Dependabot/vulnerability alerts, whether the repo is a fork, collaborator count, and CI workflow count. Distinguish **checked and absent** (API says off) from **not checked** (no access) in every finding.
+
+**d. Record connection status.** Track, per service, whether you achieved live access: `connected`, `unavailable` (no MCP/CLI or not authenticated), or `declined` (user opted out). This drives the completeness flag in the report (step 7) and how out-of-repo rows are resolved (step 5).
 
 ### 3. Detect project type
 
@@ -85,6 +87,10 @@ Record the detected type in the report; confirm with the user only if the signal
 Read [references/evidence-signals.md](./references/evidence-signals.md) — it maps each control to concrete in-repo signals and flags those that require out-of-repo verification.
 
 Then detect applicable stack facets: read the `**Detect:**` line of each `stacks/<facet>.md` (resolved as above); for every facet that applies, use its sections to interpret the corresponding standards with stack-specific tooling (facet headings match standard names exactly).
+
+**Committed-secrets sweep.** Explicitly check for configuration and secret material committed to the repository: `.env*` files (other than `*.example`/`*.sample`/`*.template`), private keys (`*.pem`, `id_rsa*`), and cloud credential files (`*credentials*.json`, `.npmrc`/`.pypirc` with tokens), in the working tree **and** in git history (`git log --diff-filter=A -- .env` etc.). A hit with real values feeds the grading of *Runtime secrets management* and *Documented configuration*, and — because a live credential in history is exploitable regardless of level arithmetic — always qualifies the finding for the Priority section.
+
+**AI-generated code detection.** Look for signals that the codebase is substantially agent- or AI-generated, and flag it in the report as a factual finding (it is context, not a defect): committed agent workspaces (`.lovable/`, `.cursor/`, `.claude/`, `.github/copilot-instructions.md`), AI co-author trailers in commit history (`Co-Authored-By: Claude/Copilot`), platform auto-commit patterns (e.g. Lovable's uniform "Changes" messages), and unmodified generator boilerplate (template READMEs). When detected, name the tool and the evidence in the Technology detected section (an "AI code generation" row under Source control & toolchain), and weigh it when grading AI-Assisted Development controls — a repo built by agents is held to those controls with more force, not less.
 
 Also inventory repo-level agent skills (`.agents/skills/`, `.claude/skills/`, `.github/skills/`, `skills/`) — these are evidence for `Automated diagnosis skills` and `Agent configuration reviewed as code` (AI-Assisted Development) and `Spec-first agent workflow` (Development Workflow). Ignore user-global skills (e.g. `~/.agents/skills/`): personal machine state, not codebase quality.
 
@@ -124,15 +130,27 @@ Rank by:
 
 Take the top 3-5.
 
-### 7. Report
+### 7. Assemble the report data
 
-Use the format below. Include the coverage line so the user can see how much of the audit is `Unknown` vs. actually checked.
+Collect every finding into one row list and derive **all** counts from it. Every number that appears anywhere in the output — lede sentences, chart segments, filter counts, section headings, footer — must reconcile against that single list; before writing, re-count any sentence that states a quantity ("two gaps could…") against the rows it summarises. A stated count that disagrees with its list is a defect, not a style issue.
 
-**Completeness flag.** Report the connection status from step 2. If any detected service is `unavailable` or `declined` (i.e. GitHub and/or the cloud/hosting provider could not be accessed), state prominently that **the report is incomplete**: name which services were not reached, and note that the `Unknown` rows tied to them could not be verified and may hide gaps. Only call the audit complete when every detected out-of-repo service was connected. Put this flag in both the markdown coverage block and the HTML lede.
+Also assemble:
 
-### 8. HTML report
+- **Standards version** — read `VERSION` (resolved like the other references) and state it in the header and footer, so the report traces to the exact set of controls in force.
+- **Repo address** — the actual source-control address from the git remote (e.g. `github.com/org/project`), linked in the header and footer.
+- **Technology detected** — concrete named technologies only (language, frameworks, database, hosting, source control, integrations, facets applied). Name the actual technology/SDK/service precisely or omit it; never vague entries like "email provider".
+- **Assumptions** — everything the findings are contingent on: how the level was inferred, services not reached and what that clouds, what was sampled rather than exhaustively verified, anything taken on trust.
+- **Effort words** — render effort as **Small / Medium / Large** in report output (the section files' S/M/L codes are source data, not display text).
 
-Also write a self-contained `standards-audit.html` at the repo root (inline CSS and JS, no external assets — must open cleanly from `file://`).
+**Completeness flag.** Report the connection status from step 2. If any detected service is `unavailable` or `declined`, state prominently that **the report is incomplete**: name which services were not reached, and note that the `Unknown` rows tied to them could not be verified and may hide gaps. Only call the audit complete when every detected out-of-repo service was connected.
+
+**Progress updates.** An audit is long — keep the user oriented throughout: announce each phase as you enter it (level rating, connections, control grading by category, report writing) and surface notable findings as you hit them, rather than going quiet until the end.
+
+### 8. HTML report — the deliverable
+
+The report **is** the HTML file. Do not print a markdown report first — produce the HTML, tell the user where it was written, and **open it in their browser** (`open`/`xdg-open`/`start`, whichever the platform has; if none works, say so and give the `file://` path). Produce the markdown format below **only when the user explicitly asks for markdown**.
+
+Write a self-contained `standards-audit.html` at the repo root (inline CSS and JS, no external assets — must open cleanly from `file://`).
 
 **Do not author the HTML/CSS from scratch, and do not invent class names, spacing, or colours.** [references/example-report.html](./references/example-report.html) is the canonical output, not a mood board. Build the report by copying it verbatim and substituting content:
 
@@ -142,29 +160,28 @@ Also write a self-contained `standards-audit.html` at the repo root (inline CSS 
 4. Add or remove whole `<section>` blocks only where the example itself says to (e.g. omit `01 · Priority` when there are no priority gaps, omit `04b` when nothing was verified live) — never restyle a kept section.
 5. Before writing the file, diff your output against the example's `<style>` block in your head: if you cannot point to the exact example line a CSS rule came from, delete it.
 
-[references/html-report.md](./references/html-report.md) explains *which data goes in which section* — use it only to know what content to substitute, never as a spec to re-derive markup from.
+[references/html-report.md](./references/html-report.md) explains *which data goes in which section* — use it only to know what content to substitute, never as a spec to re-derive markup from. It also defines the chart substitutions (coverage bar, level meter, source pills), the gap-row expansions (verbatim now-vs-required level definitions + copy-able fix prompt), the status filter, and the full-width fallback for empty columns — none of these are to be re-invented per report.
 
-Section order (all copied structurally from the example): `01 · Priority` (gaps two or more levels below required, plus any control blocking others; red; omit if none) → `02 · Next steps` → `03 · All gaps` (table) → `04 · Unverified` → `04b · Verified against live infrastructure` (omit if nothing verified live) → `05 · In good standing` → deferred/N-A → `06 · Why now`.
+Section order (all copied structurally from the example): header + lede + hero visuals → `01 · Priority` (a synthesis — the shared risk, why together, the fix order; never a re-listing of table rows; omit if no priority gaps) → `02 · Next steps` → `03 · All gaps` (grouped by category, filterable, expandable) → `04 · Unverified` → `04b · Verified against live infrastructure` (the live repo/cloud properties from step 2c; omit if nothing verified live) → `05 · In good standing` → `06 · Technology detected` → deferred/N-A → `07 · The case for improvement` → `08 · Assumptions` → footer.
 
-Detail content mirrors the markdown report — same rows and ordering. Investment case (`06 · Why now`) only when there are actionable gaps; see step 9.
-
-Tell the user where the file was written.
+Investment case (`07 · The case for improvement`) only when there are actionable gaps; see step 9.
 
 ### 9. Investment case
 
-When there are actionable gaps, include an **Investment case** section (in the HTML report; offer it at the end of the markdown report too). Its purpose is to arm the developer to argue for codebase investment when it competes with product features. Two pitches, each ≤ 150 words, generated from the actionable gap list using the project's level and the per-level effort from the section files:
+When there are actionable gaps, include the investment case (the HTML report's `07 · The case for improvement`; include it in the markdown report too when one is requested). Format it as real prose — short paragraphs for the business pitch, an ordered list of first actions for the engineering pitch — never a single unformatted block. Its purpose is to arm the developer to argue for codebase investment when it competes with product features. Two pitches, each ≤ 150 words, generated from the actionable gap list using the project's level and the per-level effort from the section files:
 
 - **Business case** (primary — written to be handed to a non-technical stakeholder): translate gaps into business outcomes, taking the consequence from the level the project was rated at and *why* it was rated there — a `Critical` rating means the business stops or something irreplaceable is lost, and the gaps are what stand between the project and that. No tool or standard names. Contrast the cost of fixing now (sum of the effort at the required level, in rough days) with the compounding cost of deferring. Explicitly counter "it's not a feature": this work is what keeps features shipping at the current pace.
 - **Technical case** — for peers and leads: name the controls, the level each currently reaches versus the level required, the tools, and the first action for each, plus why now (retrofitting cost grows with the codebase).
 
 Do not inflate. If the project rates `Personal` or `Shared` and the gaps are small, say so honestly — the case is about pace, not catastrophe. Never argue from a consequence the rating doesn't support.
 
-## Output Format
+## Output Format (markdown — only when explicitly requested)
 
 ```markdown
 ## Standards Audit — <project> (type: <type>, level: <level>)
 
 **Level:** <n · Name> — <the answer that set it, e.g. "the only copy of order records">
+**Repo:** <linked source-control address> · **Standards:** v<VERSION> · **Date:** <date>
 **Stack:** <facets> · **Source host:** <host> · **Cloud/hosting:** <provider>
 **Live access:** GitHub <connected|unavailable|declined> · <cloud> <connected|unavailable|declined>
 **Completeness:** <Complete | ⚠️ Incomplete — <services> not reached; Unknown controls tied to them unverified>
